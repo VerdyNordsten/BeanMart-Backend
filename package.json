@@ -1,35 +1,48 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Beanmart Backend API",
+  "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "ts-node src/server.ts",
-    "migrate": "ts-node src/db/migrate.ts",
-    "studio": "npx drizzle-kit studio",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon --exec ts-node src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:api": "ts-node test-api.ts"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "express",
+    "typescript",
+    "beanmart",
+    "api"
+  ],
+  "author": "Beanmart Team",
   "license": "ISC",
-  "type": "commonjs",
+  "packageManager": "pnpm@10.16.0",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
-    "drizzle-kit": "^0.31.4",
-    "drizzle-orm": "^0.44.5",
     "express": "^5.1.0",
-    "pg": "^8.16.3"
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "node-fetch": "^3.3.2",
+    "pg": "^8.16.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
-    "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.3",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^24.5.2",
+    "@types/node-fetch": "^2.6.13",
     "@types/pg": "^8.15.5",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2"
   }
 }
