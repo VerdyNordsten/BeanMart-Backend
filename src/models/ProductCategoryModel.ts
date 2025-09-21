@@ -1,8 +1,8 @@
-import { ProductCategory } from './index';
+import type { ProductCategory } from './index';
 import pool from '../config/db';
-import { QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
 import { ProductCategorySchema } from '../validation/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export class ProductCategoryModel {
   // Add category to product

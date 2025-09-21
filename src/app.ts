@@ -1,4 +1,5 @@
-import express, { Application, Request, Response } from 'express';
+import type { Application, Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -37,15 +38,12 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', message: 'Beanmart API is running' });
 });
 
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
 // Error handling middleware
 app.use(notFoundHandler);
 app.use(errorHandler);
-                                                                  
-app.listen(PORT, '0.0.0.0', () => {                              
-  console.log(`Server is running on port ${PORT}`);              
-  console.log(`Health check: http://localhost:${PORT}/health`);  
-  console.log(`API v1: http://localhost:${PORT}/api/v1`);        
-  console.log(`Swagger docs: http://localhost:${PORT}/api-docs`);
-});    
 
 export default app; 

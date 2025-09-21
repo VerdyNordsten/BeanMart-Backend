@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { ProductController } from '../../controllers/ProductController';
+import { authenticateToken } from '../../middleware/auth';
+import type { AuthRequest } from '../../middleware/auth';
 
 /**
  * @swagger
@@ -200,8 +202,10 @@ router.get('/slug/:slug', productController.getProductBySlug);
  * @swagger
  * /products:
  *   post:
- *     summary: Create a new product
+ *     summary: Create a new product (admin only)
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -250,17 +254,29 @@ router.get('/slug/:slug', productController.getProductBySlug);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/Product'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       500:
  *         description: Internal server error
  */
-router.post('/', productController.createProduct);
+router.post('/', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void productController.createProduct(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /products/{id}:
  *   put:
- *     summary: Update a product
+ *     summary: Update a product (admin only)
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -311,19 +327,31 @@ router.post('/', productController.createProduct);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/Product'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: Product not found
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', productController.updateProduct);
+router.put('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void productController.updateProduct(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /products/{id}:
  *   delete:
- *     summary: Delete a product
+ *     summary: Delete a product (admin only)
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -343,12 +371,22 @@ router.put('/:id', productController.updateProduct);
  *                   type: boolean
  *                 message:
  *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: Product not found
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', productController.deleteProduct);
+router.delete('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void productController.deleteProduct(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { ProductImageModel } from '../models/ProductImageModel';
 import { CreateProductImageSchema, UpdateProductImageSchema } from '../validation/schemas';
 import { z } from 'zod';

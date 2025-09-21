@@ -1,8 +1,8 @@
-import { ProductImage } from './index';
+import type { ProductImage } from './index';
 import pool from '../config/db';
-import { QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
 import { CreateProductImageSchema, UpdateProductImageSchema } from '../validation/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export class ProductImageModel {
   // Find images by product ID

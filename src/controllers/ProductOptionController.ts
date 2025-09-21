@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { ProductOptionModel } from '../models/ProductOptionModel';
 import { CreateProductOptionSchema, UpdateProductOptionSchema } from '../validation/schemas';
 import { z } from 'zod';

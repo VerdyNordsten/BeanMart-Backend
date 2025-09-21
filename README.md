@@ -1,6 +1,6 @@
-# Beanmart Backend API with Zod and Raw PostgreSQL Queries
+# Beanmart Backend API
 
-This project implements a modern e-commerce backend API using Express.js with TypeScript, integrating Zod for input validation and raw PostgreSQL queries for database operations.
+This project implements a modern e-commerce backend API for a coffee shop using Express.js with TypeScript and raw PostgreSQL queries for database operations.
 
 ## Table of Contents
 
@@ -8,7 +8,7 @@ This project implements a modern e-commerce backend API using Express.js with Ty
 - [Technologies Used](#technologies-used)
 - [Project Structure](#project-structure)
 - [Database Management](#database-management)
-- [Input Validation](#input-validation)
+- [Authentication](#authentication)
 - [API Documentation](#api-documentation)
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
@@ -34,6 +34,8 @@ This approach uses raw PostgreSQL queries for maximum performance and control, w
 - **Zod** - Input validation
 - **Swagger/OpenAPI** - API documentation
 - **PNPM** - Package manager
+- **JWT** - Authentication tokens
+- **BCrypt** - Password hashing
 
 ## Project Structure
 
@@ -55,7 +57,7 @@ src/
 
 ### Schema Definitions
 
-Database schemas are defined in `database.sql` using standard PostgreSQL syntax. This file contains all table definitions, indexes, and initial data.
+Database schemas are defined in `database.sql` using standard PostgreSQL syntax. This file contains all table definitions, indexes, and relationships.
 
 ### Raw Queries
 
@@ -64,15 +66,31 @@ All database operations in the models use raw PostgreSQL queries for maximum per
 1. Type safety through TypeScript interfaces
 2. Input validation through Zod schemas
 
-## Input Validation
+## Storage Configuration
 
-All incoming data is validated using Zod schemas defined in `src/validation/schemas.ts`. This ensures:
+This project uses S3-compatible storage for product images. You need to configure the following environment variables:
 
-1. Type safety for all inputs
-2. Automatic error handling for invalid data
-3. Clear documentation of expected data structures
+- `STORAGE_ENDPOINT` - The endpoint URL for your S3-compatible storage service
+- `STORAGE_PUBLIC_ENDPOINT` - The public endpoint URL for accessing stored files
+- `STORAGE_ACCESS_KEY` - Access key for your storage service
+- `STORAGE_SECRET_KEY` - Secret key for your storage service
+- `STORAGE_BUCKET_NAME` - The name of the bucket to store files in
+- `STORAGE_REGION` - The region for your storage service
 
-Each controller validates incoming request data before passing it to the model layer, ensuring that only valid data reaches the database.
+For development, you can use MinIO as a local S3-compatible storage solution.
+
+## Authentication
+
+The API supports two types of users:
+1. **Regular Users** - Customers who can browse products and place orders
+2. **Admins** - Administrators who can manage products, categories, and orders
+
+Authentication is handled through JWT tokens. Passwords are securely hashed using BCrypt.
+
+### Roles and Permissions
+
+- **Users**: Can register, login, view products, and place orders
+- **Admins**: Can manage all aspects of the system including products, categories, and orders
 
 ## API Documentation
 
@@ -89,6 +107,7 @@ Additionally, a comprehensive HTML documentation is available in `API_DOCUMENTAT
 - Node.js >= 16.x
 - PostgreSQL >= 12.x
 - PNPM >= 7.x
+- S3-compatible storage service (e.g., AWS S3, MinIO) for file storage
 
 ### Installation
 
@@ -108,13 +127,19 @@ pnpm install
    - Run the `database.sql` script to create tables
    - Configure database connection in `.env` file
 
-4. Configure environment variables:
+4. Configure storage:
+   - Set up an S3-compatible storage service (AWS S3, MinIO, etc.)
+   - Create a bucket for storing product images
+   - Generate access keys for the storage service
+   - Configure storage settings in `.env` file
+
+5. Configure environment variables:
 ```bash
 cp .env.example .env
-# Edit .env with your database configuration
+# Edit .env with your database and storage configuration
 ```
 
-5. Initialize database with sample data:
+5. Initialize database:
 ```bash
 pnpm run db:init
 ```
@@ -146,7 +171,7 @@ pnpm start
 2. Update TypeScript interfaces in `src/models/index.ts` if needed
 3. Update models to use new schema if needed
 4. Update Zod schemas in `src/validation/schemas.ts` if needed
-5. Update controllers to use new validation schemas if needed
+5. Update controllers and routes as needed
 
 ## Deployment
 

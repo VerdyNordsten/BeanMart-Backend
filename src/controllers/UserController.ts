@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { UserModel } from '../models/UserModel';
 import { UserAddressModel } from '../models/UserAddressModel';
 import { CreateUserSchema, UpdateUserSchema } from '../validation/schemas';

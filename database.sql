@@ -33,6 +33,20 @@ CREATE TABLE IF NOT EXISTS user_addresses (
 CREATE INDEX IF NOT EXISTS idx_user_addresses_user_id ON user_addresses(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_addresses_is_default ON user_addresses(is_default);
 
+-- ADMINS
+CREATE TABLE IF NOT EXISTS admins (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  full_name TEXT,
+  password_hash TEXT NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(email);
+CREATE INDEX IF NOT EXISTS idx_admins_is_active ON admins(is_active);
+
 -- CATEGORIES (opsional)
 CREATE TABLE IF NOT EXISTS categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -138,43 +152,36 @@ CREATE TABLE IF NOT EXISTS variant_images (
 CREATE INDEX IF NOT EXISTS idx_variant_images_variant_id ON variant_images(variant_id);
 CREATE INDEX IF NOT EXISTS idx_variant_images_position ON variant_images(position);
 
--- Sample data for testing
--- Uncomment the following lines if you want to insert sample data
+-- ORDERS
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  order_number TEXT UNIQUE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending', -- pending, confirmed, shipped, delivered, cancelled
+  total_amount NUMERIC(12,2) NOT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'IDR',
+  shipping_address JSONB,
+  billing_address JSONB,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-/*
-INSERT INTO users (email, phone, full_name) VALUES 
-('john.doe@example.com', '+6281234567890', 'John Doe'),
-('jane.smith@example.com', '+6281234567891', 'Jane Smith');
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
 
-INSERT INTO categories (slug, name) VALUES 
-('coffee', 'Coffee'),
-('merchandise', 'Merchandise');
+-- ORDER ITEMS
+CREATE TABLE IF NOT EXISTS order_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_variant_id UUID NOT NULL REFERENCES product_variants(id) ON DELETE CASCADE,
+  quantity INTEGER NOT NULL,
+  price_per_unit NUMERIC(12,2) NOT NULL,
+  total_price NUMERIC(12,2) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-INSERT INTO products (slug, name, short_description, base_price, currency, is_active) VALUES 
-('sumatra-mandheling', 'Sumatra Mandheling Coffee', 'Rich, full-bodied coffee with earthy notes', 125000, 'IDR', TRUE),
-('ethiopian-yirgacheffe', 'Ethiopian Yirgacheffe Coffee', 'Bright, floral coffee with citrus notes', 135000, 'IDR', TRUE);
-
-INSERT INTO product_categories (product_id, category_id) VALUES 
-((SELECT id FROM products WHERE slug = 'sumatra-mandheling'), (SELECT id FROM categories WHERE slug = 'coffee')),
-((SELECT id FROM products WHERE slug = 'ethiopian-yirgacheffe'), (SELECT id FROM categories WHERE slug = 'coffee'));
-
-INSERT INTO product_images (product_id, url, position) VALUES 
-((SELECT id FROM products WHERE slug = 'sumatra-mandheling'), 'https://example.com/sumatra-mandheling.jpg', 1),
-((SELECT id FROM products WHERE slug = 'ethiopian-yirgacheffe'), 'https://example.com/ethiopian-yirgacheffe.jpg', 1);
-
-INSERT INTO product_option_types (product_id, name, position) VALUES 
-((SELECT id FROM products WHERE slug = 'sumatra-mandheling'), 'Grind', 1),
-((SELECT id FROM products WHERE slug = 'sumatra-mandheling'), 'Size', 2);
-
-INSERT INTO product_options (option_type_id, value, position) VALUES 
-((SELECT id FROM product_option_types WHERE name = 'Grind'), 'Whole Bean', 1),
-((SELECT id FROM product_option_types WHERE name = 'Grind'), 'Ground', 2),
-((SELECT id FROM product_option_types WHERE name = 'Size'), '250g', 1),
-((SELECT id FROM product_option_types WHERE name = 'Size'), '500g', 2);
-
-INSERT INTO product_variants (product_id, sku, price, stock, option1_value, option2_value) VALUES 
-((SELECT id FROM products WHERE slug = 'sumatra-mandheling'), 'SM-WB-250', 125000, 50, 'Whole Bean', '250g'),
-((SELECT id FROM products WHERE slug = 'sumatra-mandheling'), 'SM-WB-500', 145000, 30, 'Whole Bean', '500g'),
-((SELECT id FROM products WHERE slug = 'sumatra-mandheling'), 'SM-G-250', 125000, 40, 'Ground', '250g'),
-((SELECT id FROM products WHERE slug = 'sumatra-mandheling'), 'SM-G-500', 145000, 20, 'Ground', '500g');
-*/
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product_variant_id ON order_items(product_variant_id);

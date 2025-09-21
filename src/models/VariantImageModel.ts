@@ -1,8 +1,8 @@
-import { VariantImage } from './index';
+import type { VariantImage } from './index';
 import pool from '../config/db';
-import { QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
 import { CreateVariantImageSchema, UpdateVariantImageSchema } from '../validation/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export class VariantImageModel {
   // Find images by variant ID

@@ -1,8 +1,8 @@
-import { ProductOptionType } from './index';
+import type { ProductOptionType } from './index';
 import pool from '../config/db';
-import { QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
 import { CreateProductOptionTypeSchema, UpdateProductOptionTypeSchema } from '../validation/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export class ProductOptionTypeModel {
   // Find option types by product ID

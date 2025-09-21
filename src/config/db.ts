@@ -1,19 +1,20 @@
-import { Pool, QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
+import { Pool } from 'pg';
 import { config } from 'dotenv';
 
 config();
 
 // Create a PostgreSQL connection pool
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'beanmart',
-  password: process.env.DB_PASSWORD || 'postgres',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
+  user: process.env.DB_USER ?? 'postgres',
+  host: process.env.DB_HOST ?? 'localhost',
+  database: process.env.DB_NAME ?? 'beanmart',
+  password: process.env.DB_PASSWORD ?? 'postgres',
+  port: parseInt(process.env.DB_PORT ?? '5432', 10),
 });
 
 // Test the database connection
-pool.query('SELECT NOW()', (err: Error, res: QueryResult) => {
+pool.query('SELECT NOW()', (err: Error, _res: QueryResult) => {
   if (err) {
     console.error('Database connection error:', err.stack);
   } else {

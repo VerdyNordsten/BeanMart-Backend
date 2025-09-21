@@ -1,8 +1,8 @@
-import { UserAddress } from './index';
+import type { UserAddress } from './index';
 import pool from '../config/db';
-import { QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
 import { CreateUserAddressSchema, UpdateUserAddressSchema } from '../validation/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export class UserAddressModel {
   // Find addresses by user ID

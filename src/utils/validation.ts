@@ -1,5 +1,5 @@
 // Utility function to validate required fields in request body
-export const validateRequiredFields = (body: any, requiredFields: string[]): string[] => {
+export const validateRequiredFields = (body: Record<string, unknown>, requiredFields: string[]): string[] => {
   const missingFields: string[] = [];
   
   requiredFields.forEach(field => {

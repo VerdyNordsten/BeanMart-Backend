@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 
 // Import individual route files
 import userRoutes from './v1/users';
@@ -12,6 +13,8 @@ import productOptionRoutes from './v1/productOptions';
 import productVariantRoutes from './v1/productVariants';
 import variantImageRoutes from './v1/variantImages';
 import authRoutes from './v1/auth';
+import orderRoutes from './v1/orders';
+import fileUploadRoutes from './v1/fileUpload';
 
 const router: Router = Router();
 
@@ -36,5 +39,7 @@ router.use('/product-option-types', productOptionTypeRoutes);
 router.use('/product-options', productOptionRoutes);
 router.use('/product-variants', productVariantRoutes);
 router.use('/variant-images', variantImageRoutes);
+router.use('/orders', orderRoutes);
+router.use('/file-upload', fileUploadRoutes);
 
 export default router;

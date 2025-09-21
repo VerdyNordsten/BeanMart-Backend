@@ -1,8 +1,8 @@
-import { User } from './index';
+import type { User } from './index';
 import pool from '../config/db';
-import { QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
 import { CreateUserSchema, UpdateUserSchema } from '../validation/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export class UserModel {
   // Find user by email

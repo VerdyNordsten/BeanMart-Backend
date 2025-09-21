@@ -138,3 +138,42 @@ export const VariantImageSchema = z.object({
 
 export const CreateVariantImageSchema = VariantImageSchema.omit({ id: true });
 export const UpdateVariantImageSchema = VariantImageSchema.partial().omit({ id: true });
+
+// Order schema
+export const OrderSchema = z.object({
+  id: z.string().uuid().optional(),
+  userId: z.string().uuid(),
+  orderNumber: z.string(),
+  status: z.string().default('pending'),
+  totalAmount: z.number(),
+  currency: z.string().length(3).default('IDR'),
+  shippingAddress: z.any().optional(),
+  billingAddress: z.any().optional(),
+  notes: z.string().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
+export const CreateOrderSchema = OrderSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
+  items: z.array(z.object({
+    productVariantId: z.string().uuid(),
+    quantity: z.number().int().positive(),
+    pricePerUnit: z.number().positive(),
+    totalPrice: z.number().positive()
+  })).optional()
+});
+export const UpdateOrderSchema = OrderSchema.partial().omit({ id: true, createdAt: true, updatedAt: true });
+
+// Order Item schema
+export const OrderItemSchema = z.object({
+  id: z.string().uuid().optional(),
+  orderId: z.string().uuid(),
+  productVariantId: z.string().uuid(),
+  quantity: z.number().int().positive(),
+  pricePerUnit: z.number().positive(),
+  totalPrice: z.number().positive(),
+  createdAt: z.date().optional(),
+});
+
+export const CreateOrderItemSchema = OrderItemSchema.omit({ id: true, createdAt: true });
+export const UpdateOrderItemSchema = OrderItemSchema.partial().omit({ id: true, createdAt: true });

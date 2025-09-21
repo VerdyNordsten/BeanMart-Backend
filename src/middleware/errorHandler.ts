@@ -1,12 +1,16 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
+
+interface AppError extends Error {
+  status?: number;
+}
 
 // Error handling middleware
-export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (err: AppError, req: Request, res: Response, _next: NextFunction) => {
   console.error(err.stack);
   
   // Default error response
-  const status = err.status || 500;
-  const message = err.message || 'Internal Server Error';
+  const status = err.status ?? 500;
+  const message = err.message ?? 'Internal Server Error';
   
   res.status(status).json({
     success: false,
@@ -16,7 +20,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
 };
 
 // 404 handler middleware
-export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
+export const notFoundHandler = (req: Request, res: Response, _next: NextFunction) => {
   res.status(404).json({
     success: false,
     error: 'Route not found'

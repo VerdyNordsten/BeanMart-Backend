@@ -9,7 +9,15 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:api": "ts-node test-api.ts",
-    "db:init": "ts-node src/scripts/init-database.ts"
+    "test:storage": "ts-node test-storage.ts",
+    "test:api-upload": "ts-node test-api-upload.ts",
+    "db:init": "ts-node src/scripts/init-database.ts",
+    "admin:create": "node src/scripts/create-admin.js",
+    "admin:list": "node src/scripts/list-admins.js",
+    "admin:activate": "node src/scripts/activate-admin.js",
+    "admin:deactivate": "node src/scripts/deactivate-admin.js",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
   },
   "keywords": [
     "express",
@@ -21,8 +29,10 @@
   "license": "ISC",
   "packageManager": "pnpm@10.16.0",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.893.0",
     "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
@@ -30,6 +40,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
+    "multer": "^2.0.2",
     "pg": "^8.16.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
@@ -37,6 +48,7 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/morgan": "^1.9.10",
@@ -44,9 +56,13 @@
     "@types/pg": "^8.15.5",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "@typescript-eslint/parser": "^8.44.0",
+    "eslint": "^9.36.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.0"
   }
 }

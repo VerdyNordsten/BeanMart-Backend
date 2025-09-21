@@ -1,6 +1,8 @@
-import { Router, Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import { AuthController } from '../../controllers/AuthController';
-import { authenticateToken, AuthRequest } from '../../middleware/auth';
+import type { AuthRequest } from '../../middleware/auth';
+import { authenticateToken } from '../../middleware/auth';
 
 const router: Router = Router();
 const authController = new AuthController();
@@ -9,7 +11,7 @@ const authController = new AuthController();
  * @swagger
  * tags:
  *   name: Authentication
- *   description: User authentication endpoints
+ *   description: User and admin authentication endpoints
  */
 
 /**
@@ -46,6 +48,24 @@ const authController = new AuthController();
  *         phone: +6281234567890
  *         full_name: User Example
  *         created_at: 2023-01-01T00:00:00.000Z
+ *     LoginRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *         password:
+ *           type: string
+ *         isAdmin:
+ *           type: boolean
+ *           description: Set to true for admin login
+ *       example:
+ *         email: user@example.com
+ *         password: password123
+ *         isAdmin: false
  */
 
 /**
@@ -106,28 +126,17 @@ router.post('/register', (req: Request, res: Response) => authController.registe
  * @swagger
  * /auth/login:
  *   post:
- *     summary: Login user
+ *     summary: Login user or admin
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 description: User's email address
- *               password:
- *                 type: string
- *                 description: User's password
+ *             $ref: '#/components/schemas/LoginRequest'
  *     responses:
  *       200:
- *         description: User logged in successfully
+ *         description: User/admin logged in successfully
  *         content:
  *           application/json:
  *             schema:
@@ -136,7 +145,8 @@ router.post('/register', (req: Request, res: Response) => authController.registe
  *                 success:
  *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/User'
+ *                   oneOf:
+ *                     - $ref: '#/components/schemas/User'
  *                 token:
  *                   type: string
  *                   description: JWT token for authentication
@@ -153,13 +163,13 @@ router.post('/login', (req: Request, res: Response) => authController.login(req,
  * @swagger
  * /auth/profile:
  *   get:
- *     summary: Get current user profile
+ *     summary: Get current user/admin profile
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User profile retrieved successfully
+ *         description: User/admin profile retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -168,11 +178,12 @@ router.post('/login', (req: Request, res: Response) => authController.login(req,
  *                 success:
  *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/User'
+ *                   oneOf:
+ *                     - $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized - Missing or invalid token
  *       404:
- *         description: User not found
+ *         description: User/admin not found
  *       500:
  *         description: Server error
  */

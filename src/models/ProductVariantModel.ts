@@ -1,8 +1,8 @@
-import { ProductVariant } from './index';
+import type { ProductVariant } from './index';
 import pool from '../config/db';
-import { QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
 import { CreateProductVariantSchema, UpdateProductVariantSchema } from '../validation/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export class ProductVariantModel {
   // Find variants by product ID

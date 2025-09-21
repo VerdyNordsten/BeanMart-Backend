@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { VariantImageModel } from '../models/VariantImageModel';
 import { CreateVariantImageSchema, UpdateVariantImageSchema } from '../validation/schemas';
 import { z } from 'zod';

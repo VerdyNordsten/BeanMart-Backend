@@ -1,8 +1,8 @@
-import { Product } from './index';
+import type { Product } from './index';
 import pool from '../config/db';
-import { QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
 import { CreateProductSchema, UpdateProductSchema } from '../validation/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export class ProductModel {
   // Find all products

@@ -1,8 +1,8 @@
-import { Category } from './index';
+import type { Category } from './index';
 import pool from '../config/db';
-import { QueryResult } from 'pg';
+import type { QueryResult } from 'pg';
 import { CreateCategorySchema, UpdateCategorySchema } from '../validation/schemas';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export class CategoryModel {
   // Find all categories

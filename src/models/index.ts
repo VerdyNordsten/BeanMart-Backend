@@ -104,3 +104,29 @@ export interface VariantImage {
   url: string;
   position: number;
 }
+
+// Order entity
+export interface Order {
+  id: string;
+  user_id: string;
+  order_number: string;
+  status: string;
+  total_amount: number;
+  currency: string;
+  shipping_address?: Record<string, unknown>;
+  billing_address?: Record<string, unknown>;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Order Item entity
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_variant_id: string;
+  quantity: number;
+  price_per_unit: number;
+  total_price: number;
+  created_at: Date;
+}
