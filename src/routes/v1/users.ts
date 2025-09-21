@@ -223,4 +223,100 @@ router.put('/:id', userController.updateUser);
  */
 router.delete('/:id', userController.deleteUser);
 
+/**
+ * @swagger
+ * /users/{id}/addresses:
+ *   get:
+ *     summary: Get all addresses for a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: List of user addresses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/UserAddress'
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:id/addresses', userController.getUserAddresses);
+
+/**
+ * @swagger
+ * /users/{id}/addresses:
+ *   post:
+ *     summary: Create a new address for a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - country
+ *               - is_default
+ *             properties:
+ *               label:
+ *                 type: string
+ *               recipient_name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               address_line1:
+ *                 type: string
+ *               address_line2:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               postal_code:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *               is_default:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: User address created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/UserAddress'
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/:id/addresses', userController.createUserAddress);
+
 export default router;

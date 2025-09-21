@@ -1,8 +1,13 @@
 import { Request, Response } from 'express';
 import { ProductModel } from '../models/ProductModel';
-import { Product } from '../models';
+import { ProductImageModel } from '../models/ProductImageModel';
+import { ProductVariantModel } from '../models/ProductVariantModel';
+import { CreateProductSchema, UpdateProductSchema } from '../validation/schemas';
+import { z } from 'zod';
 
 const productModel = new ProductModel();
+const productImageModel = new ProductImageModel();
+const productVariantModel = new ProductVariantModel();
 
 export class ProductController {
   // Get all products
@@ -12,6 +17,16 @@ export class ProductController {
       res.status(200).json({ success: true, data: products });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error fetching products', error });
+    }
+  }
+
+  // Get active products
+  async getActiveProducts(req: Request, res: Response): Promise<void> {
+    try {
+      const products = await productModel.findActive();
+      res.status(200).json({ success: true, data: products });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Error fetching active products', error });
     }
   }
 
@@ -49,24 +64,19 @@ export class ProductController {
     }
   }
 
-  // Get active products
-  async getActiveProducts(req: Request, res: Response): Promise<void> {
-    try {
-      const products = await productModel.findActive();
-      res.status(200).json({ success: true, data: products });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Error fetching products', error });
-    }
-  }
-
   // Create a new product
   async createProduct(req: Request, res: Response): Promise<void> {
     try {
-      const productData: Omit<Product, 'id' | 'created_at' | 'updated_at'> = req.body;
+      // Validate input
+      const productData = CreateProductSchema.parse(req.body);
       const newProduct = await productModel.create(productData);
       res.status(201).json({ success: true, data: newProduct });
     } catch (error) {
-      res.status(500).json({ success: false, message: 'Error creating product', error });
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ success: false, message: 'Validation error', errors: error.issues });
+      } else {
+        res.status(500).json({ success: false, message: 'Error creating product', error });
+      }
     }
   }
 
@@ -74,7 +84,8 @@ export class ProductController {
   async updateProduct(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const productData: Partial<Product> = req.body;
+      // Validate input
+      const productData = UpdateProductSchema.parse(req.body);
       const updatedProduct = await productModel.update(id, productData);
       
       if (!updatedProduct) {
@@ -84,7 +95,11 @@ export class ProductController {
       
       res.status(200).json({ success: true, data: updatedProduct });
     } catch (error) {
-      res.status(500).json({ success: false, message: 'Error updating product', error });
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ success: false, message: 'Validation error', errors: error.issues });
+      } else {
+        res.status(500).json({ success: false, message: 'Error updating product', error });
+      }
     }
   }
 
@@ -102,6 +117,60 @@ export class ProductController {
       res.status(200).json({ success: true, message: 'Product deleted successfully' });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error deleting product', error });
+    }
+  }
+
+  // Get product images
+  async getProductImages(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      // Check if product exists
+      const product = await productModel.findById(id);
+      if (!product) {
+        res.status(404).json({ success: false, message: 'Product not found' });
+        return;
+      }
+      
+      const images = await productImageModel.findByProductId(id);
+      res.status(200).json({ success: true, data: images });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Error fetching product images', error });
+    }
+  }
+
+  // Get product variants
+  async getProductVariants(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      // Check if product exists
+      const product = await productModel.findById(id);
+      if (!product) {
+        res.status(404).json({ success: false, message: 'Product not found' });
+        return;
+      }
+      
+      const variants = await productVariantModel.findByProductId(id);
+      res.status(200).json({ success: true, data: variants });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Error fetching product variants', error });
+    }
+  }
+
+  // Get active product variants
+  async getActiveProductVariants(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      // Check if product exists
+      const product = await productModel.findById(id);
+      if (!product) {
+        res.status(404).json({ success: false, message: 'Product not found' });
+        return;
+      }
+      
+      const variants = await productVariantModel.findActiveByProductId(id);
+      res.status(200).json({ success: true, data: variants });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Error fetching active product variants', error });
     }
   }
 }

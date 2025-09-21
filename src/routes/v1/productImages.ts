@@ -1,50 +1,62 @@
 import { Router } from 'express';
-import { CategoryController } from '../../controllers/CategoryController';
+import { ProductImageController } from '../../controllers/ProductImageController';
 
 /**
  * @swagger
  * tags:
- *   name: Categories
- *   description: Category management
+ *   name: Product Images
+ *   description: Product image management
  */
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     Category:
+ *     ProductImage:
  *       type: object
  *       required:
- *         - slug
- *         - name
+ *         - product_id
+ *         - url
+ *         - position
  *       properties:
  *         id:
  *           type: string
- *           description: The auto-generated id of the category
- *         slug:
+ *           description: The auto-generated id of the product image
+ *         product_id:
  *           type: string
- *           description: Unique slug for the category
- *         name:
+ *           description: The ID of the product
+ *         url:
  *           type: string
- *           description: Category name
+ *           description: Image URL
+ *         position:
+ *           type: integer
+ *           description: Image position (1 = cover image)
  *       example:
  *         id: 550e8400-e29b-41d4-a716-446655440000
- *         slug: coffee
- *         name: Coffee
+ *         product_id: 550e8400-e29b-41d4-a716-446655440001
+ *         url: https://example.com/image.jpg
+ *         position: 1
  */
 
 const router: Router = Router();
-const categoryController = new CategoryController();
+const productImageController = new ProductImageController();
 
 /**
  * @swagger
- * /categories:
+ * /product-images/product/{product_id}:
  *   get:
- *     summary: Get all categories
- *     tags: [Categories]
+ *     summary: Get all images for a product
+ *     tags: [Product Images]
+ *     parameters:
+ *       - in: path
+ *         name: product_id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Product ID
  *     responses:
  *       200:
- *         description: List of all categories
+ *         description: List of product images
  *         content:
  *           application/json:
  *             schema:
@@ -55,28 +67,28 @@ const categoryController = new CategoryController();
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Category'
+ *                     $ref: '#/components/schemas/ProductImage'
  *       500:
  *         description: Internal server error
  */
-router.get('/', categoryController.getAllCategories);
+router.get('/product/:product_id', productImageController.getProductImages);
 
 /**
  * @swagger
- * /categories/{id}:
+ * /product-images/{id}:
  *   get:
- *     summary: Get a category by ID
- *     tags: [Categories]
+ *     summary: Get a product image by ID
+ *     tags: [Product Images]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: Category ID
+ *         description: Product Image ID
  *     responses:
  *       200:
- *         description: Category details
+ *         description: Product image details
  *         content:
  *           application/json:
  *             schema:
@@ -85,52 +97,20 @@ router.get('/', categoryController.getAllCategories);
  *                 success:
  *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/Category'
+ *                   $ref: '#/components/schemas/ProductImage'
  *       404:
- *         description: Category not found
+ *         description: Product image not found
  *       500:
  *         description: Internal server error
  */
-router.get('/:id', categoryController.getCategoryById);
+router.get('/:id', productImageController.getProductImageById);
 
 /**
  * @swagger
- * /categories/slug/{slug}:
- *   get:
- *     summary: Get a category by slug
- *     tags: [Categories]
- *     parameters:
- *       - in: path
- *         name: slug
- *         schema:
- *           type: string
- *         required: true
- *         description: Category slug
- *     responses:
- *       200:
- *         description: Category details
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   $ref: '#/components/schemas/Category'
- *       404:
- *         description: Category not found
- *       500:
- *         description: Internal server error
- */
-router.get('/slug/:slug', categoryController.getCategoryBySlug);
-
-/**
- * @swagger
- * /categories:
+ * /product-images:
  *   post:
- *     summary: Create a new category
- *     tags: [Categories]
+ *     summary: Create a new product image
+ *     tags: [Product Images]
  *     requestBody:
  *       required: true
  *       content:
@@ -138,16 +118,19 @@ router.get('/slug/:slug', categoryController.getCategoryBySlug);
  *           schema:
  *             type: object
  *             required:
- *               - slug
- *               - name
+ *               - product_id
+ *               - url
+ *               - position
  *             properties:
- *               slug:
+ *               product_id:
  *                 type: string
- *               name:
+ *               url:
  *                 type: string
+ *               position:
+ *                 type: integer
  *     responses:
  *       201:
- *         description: Category created successfully
+ *         description: Product image created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -156,25 +139,25 @@ router.get('/slug/:slug', categoryController.getCategoryBySlug);
  *                 success:
  *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/Category'
+ *                   $ref: '#/components/schemas/ProductImage'
  *       500:
  *         description: Internal server error
  */
-router.post('/', categoryController.createCategory);
+router.post('/', productImageController.createProductImage);
 
 /**
  * @swagger
- * /categories/{id}:
+ * /product-images/{id}:
  *   put:
- *     summary: Update a category
- *     tags: [Categories]
+ *     summary: Update a product image
+ *     tags: [Product Images]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: Category ID
+ *         description: Product Image ID
  *     requestBody:
  *       required: true
  *       content:
@@ -182,13 +165,13 @@ router.post('/', categoryController.createCategory);
  *           schema:
  *             type: object
  *             properties:
- *               slug:
+ *               url:
  *                 type: string
- *               name:
- *                 type: string
+ *               position:
+ *                 type: integer
  *     responses:
  *       200:
- *         description: Category updated successfully
+ *         description: Product image updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -197,30 +180,30 @@ router.post('/', categoryController.createCategory);
  *                 success:
  *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/Category'
+ *                   $ref: '#/components/schemas/ProductImage'
  *       404:
- *         description: Category not found
+ *         description: Product image not found
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', categoryController.updateCategory);
+router.put('/:id', productImageController.updateProductImage);
 
 /**
  * @swagger
- * /categories/{id}:
+ * /product-images/{id}:
  *   delete:
- *     summary: Delete a category
- *     tags: [Categories]
+ *     summary: Delete a product image
+ *     tags: [Product Images]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: Category ID
+ *         description: Product Image ID
  *     responses:
  *       200:
- *         description: Category deleted successfully
+ *         description: Product image deleted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -231,28 +214,39 @@ router.put('/:id', categoryController.updateCategory);
  *                 message:
  *                   type: string
  *       404:
- *         description: Category not found
+ *         description: Product image not found
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', categoryController.deleteCategory);
+router.delete('/:id', productImageController.deleteProductImage);
 
 /**
  * @swagger
- * /categories/{id}/products:
- *   get:
- *     summary: Get all products for a category
- *     tags: [Categories]
+ * /product-images/{id}/position:
+ *   put:
+ *     summary: Update product image position
+ *     tags: [Product Images]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: Category ID
+ *         description: Product Image ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - position
+ *             properties:
+ *               position:
+ *                 type: integer
  *     responses:
  *       200:
- *         description: List of product categories
+ *         description: Product image position updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -261,12 +255,12 @@ router.delete('/:id', categoryController.deleteCategory);
  *                 success:
  *                   type: boolean
  *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/ProductCategory'
+ *                   $ref: '#/components/schemas/ProductImage'
+ *       404:
+ *         description: Product image not found
  *       500:
  *         description: Internal server error
  */
-router.get('/:id/products', categoryController.getProductsForCategory);
+router.put('/:id/position', productImageController.updateImagePosition);
 
 export default router;

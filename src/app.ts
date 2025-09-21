@@ -40,12 +40,12 @@ app.get('/health', (req: Request, res: Response) => {
 // Error handling middleware
 app.use(notFoundHandler);
 app.use(errorHandler);
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`API v1: http://localhost:${PORT}/api/v1`);
+                                                                  
+app.listen(PORT, '0.0.0.0', () => {                              
+  console.log(`Server is running on port ${PORT}`);              
+  console.log(`Health check: http://localhost:${PORT}/health`);  
+  console.log(`API v1: http://localhost:${PORT}/api/v1`);        
   console.log(`Swagger docs: http://localhost:${PORT}/api-docs`);
-});
+});    
 
-export default app;
+export default app; 
