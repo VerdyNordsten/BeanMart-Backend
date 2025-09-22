@@ -34,7 +34,8 @@ export const authenticateAdmin = async (req: AdminAuthRequest, res: Response, ne
     req.adminId = decoded.id;
     req.isAdmin = true;
     next();
-  } catch {
+  } catch (error) {
+    console.error('Admin authentication error:', error);
     res.status(403).json({ success: false, message: 'Invalid or expired token' });
     return;
   }

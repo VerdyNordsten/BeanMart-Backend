@@ -2,8 +2,10 @@
 
 // This script initializes the database schema
 
+import { readFileSync } from 'fs';
 import { Pool } from 'pg';
 import { config } from 'dotenv';
+import { join } from 'path';
 
 config();
 
@@ -19,10 +21,16 @@ async function initializeDatabase() {
   });
 
   try {
-    console.log('Database connected successfully!');
-    console.log('✅ Database schema is ready!');
+    // Read the database schema file
+    const schemaPath = join(__dirname, '../../database.sql');
+    const schema = readFileSync(schemaPath, 'utf8');
+    
+    // Execute the schema
+    await pool.query(schema);
+    
+    console.log('✅ Database schema initialized successfully!');
   } catch (error) {
-    console.error('❌ Error connecting to database:', error);
+    console.error('❌ Error initializing database schema:', error);
   } finally {
     await pool.end();
   }

@@ -1,11 +1,9 @@
 import type { Request, Response } from 'express';
 import { UserModel } from '../models/UserModel';
-import { UserAddressModel } from '../models/UserAddressModel';
 import { CreateUserSchema, UpdateUserSchema } from '../validation/schemas';
 import { z } from 'zod';
 
 const userModel = new UserModel();
-const userAddressModel = new UserAddressModel();
 
 export class UserController {
   // Get all users
@@ -88,52 +86,6 @@ export class UserController {
       res.status(200).json({ success: true, message: 'User deleted successfully' });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error deleting user', error });
-    }
-  }
-
-  // Get user addresses
-  async getUserAddresses(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      // Check if user exists
-      const user = await userModel.findById(id);
-      if (!user) {
-        res.status(404).json({ success: false, message: 'User not found' });
-        return;
-      }
-      
-      const addresses = await userAddressModel.findByUserId(id);
-      res.status(200).json({ success: true, data: addresses });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Error fetching user addresses', error });
-    }
-  }
-
-  // Create user address
-  async createUserAddress(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      // Check if user exists
-      const user = await userModel.findById(id);
-      if (!user) {
-        res.status(404).json({ success: false, message: 'User not found' });
-        return;
-      }
-      
-      // Add user_id to the request body and validate
-      const addressData = {
-        ...req.body,
-        userId: id
-      };
-      
-      const newAddress = await userAddressModel.create(addressData);
-      res.status(201).json({ success: true, data: newAddress });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ success: false, message: 'Validation error', errors: error.issues });
-      } else {
-        res.status(500).json({ success: false, message: 'Error creating user address', error });
-      }
     }
   }
 }

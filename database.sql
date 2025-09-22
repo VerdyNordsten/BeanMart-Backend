@@ -98,28 +98,6 @@ CREATE TABLE IF NOT EXISTS product_images (
 CREATE INDEX IF NOT EXISTS idx_product_images_product_id ON product_images(product_id);
 CREATE INDEX IF NOT EXISTS idx_product_images_position ON product_images(position);
 
--- OPTION TYPES (contoh: "Grind", "Size", "Roast")
-CREATE TABLE IF NOT EXISTS product_option_types (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  position INTEGER NOT NULL DEFAULT 1
-);
-
-CREATE INDEX IF NOT EXISTS idx_product_option_types_product_id ON product_option_types(product_id);
-CREATE INDEX IF NOT EXISTS idx_product_option_types_position ON product_option_types(position);
-
--- OPTION VALUES (contoh: "Whole Bean", "250g", "Medium")
-CREATE TABLE IF NOT EXISTS product_options (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  option_type_id UUID NOT NULL REFERENCES product_option_types(id) ON DELETE CASCADE,
-  value TEXT NOT NULL,
-  position INTEGER NOT NULL DEFAULT 1
-);
-
-CREATE INDEX IF NOT EXISTS idx_product_options_option_type_id ON product_options(option_type_id);
-CREATE INDEX IF NOT EXISTS idx_product_options_position ON product_options(position);
-
 -- VARIANTS (kombinasi opsi; jika tanpa variasi → varian default)
 CREATE TABLE IF NOT EXISTS product_variants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

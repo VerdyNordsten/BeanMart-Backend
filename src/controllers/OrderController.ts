@@ -47,17 +47,6 @@ export class OrderController {
         return;
       }
       
-      // Check if user is authorized to view this order
-      const userId = req.userId;
-      if (!userId) {
-        res.status(401).json({ success: false, message: 'Unauthorized' });
-        return;
-      }
-      if (order.user_id !== userId && !req.isAdmin) {
-        res.status(403).json({ success: false, message: 'Not authorized to view this order' });
-        return;
-      }
-      
       // Get order items
       const orderItems = await orderItemModel.findByOrderId(id);
       

@@ -23,24 +23,24 @@ export class UserAddressModel {
   async create(addressData: z.infer<typeof CreateUserAddressSchema>): Promise<UserAddress> {
     // Validate input
     const validatedData = CreateUserAddressSchema.parse(addressData);
-    
-    const query = `INSERT INTO user_addresses (user_id, label, recipient_name, phone, address_line1, 
-                   address_line2, city, state, postal_code, country, is_default) 
+
+    const query = `INSERT INTO user_addresses (user_id, label, recipient_name, phone, address_line1,
+                   address_line2, city, state, postal_code, country, is_default)
                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`;
     const values = [
-      validatedData.userId,
+      validatedData.user_id,
       validatedData.label,
-      validatedData.recipientName,
+      validatedData.recipient_name,
       validatedData.phone,
-      validatedData.addressLine1,
-      validatedData.addressLine2,
+      validatedData.address_line1,
+      validatedData.address_line2,
       validatedData.city,
       validatedData.state,
-      validatedData.postalCode,
+      validatedData.postal_code,
       validatedData.country,
-      validatedData.isDefault
+      validatedData.is_default
     ];
-    
+
     const result: QueryResult = await pool.query(query, values);
     return result.rows[0];
   }
@@ -54,14 +54,14 @@ export class UserAddressModel {
     const values = [];
     let index = 1;
     
-    // Map camelCase to snake_case for database fields
+    // Map snake_case fields to database columns
     const fieldMap: Record<string, string> = {
-      userId: 'user_id',
-      recipientName: 'recipient_name',
-      addressLine1: 'address_line1',
-      addressLine2: 'address_line2',
-      postalCode: 'postal_code',
-      isDefault: 'is_default'
+      user_id: 'user_id',
+      recipient_name: 'recipient_name',
+      address_line1: 'address_line1',
+      address_line2: 'address_line2',
+      postal_code: 'postal_code',
+      is_default: 'is_default'
     };
     
     for (const [key, value] of Object.entries(validatedData)) {

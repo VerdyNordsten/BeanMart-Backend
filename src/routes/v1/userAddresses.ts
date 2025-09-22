@@ -1,5 +1,15 @@
 import { Router } from 'express';
 import { UserAddressController } from '../../controllers/UserAddressController';
+import { authenticateToken } from '../../middleware/auth';
+import { checkOwnership } from '../../middleware/ownership';
+import { UserAddressModel } from '../../models/UserAddressModel';
+
+const router: Router = Router();
+const userAddressController = new UserAddressController();
+const userAddressModel = new UserAddressModel();
+
+// Create the ownership middleware for user addresses
+const checkAddressOwnership = checkOwnership(userAddressModel);
 
 /**
  * @swagger
@@ -75,9 +85,6 @@ import { UserAddressController } from '../../controllers/UserAddressController';
  *         created_at: 2023-01-01T00:00:00.000Z
  */
 
-const router: Router = Router();
-const userAddressController = new UserAddressController();
-
 /**
  * @swagger
  * /user-addresses/user/{user_id}:
@@ -108,7 +115,7 @@ const userAddressController = new UserAddressController();
  *       500:
  *         description: Internal server error
  */
-router.get('/user/:user_id', userAddressController.getUserAddresses);
+router.get('/', authenticateToken, userAddressController.getUserAddresses);
 
 /**
  * @swagger
@@ -140,13 +147,13 @@ router.get('/user/:user_id', userAddressController.getUserAddresses);
  *       500:
  *         description: Internal server error
  */
-router.get('/:id', userAddressController.getUserAddressById);
+router.get('/:id', authenticateToken, checkAddressOwnership, userAddressController.getUserAddressById);
 
 /**
  * @swagger
  * /user-addresses:
  *   post:
- *     summary: Create a new user address
+ *     summary: Create a new user address for the authenticated user
  *     tags: [User Addresses]
  *     requestBody:
  *       required: true
@@ -155,12 +162,9 @@ router.get('/:id', userAddressController.getUserAddressById);
  *           schema:
  *             type: object
  *             required:
- *               - user_id
  *               - country
  *               - is_default
  *             properties:
- *               user_id:
- *                 type: string
  *               label:
  *                 type: string
  *               recipient_name:
@@ -196,7 +200,7 @@ router.get('/:id', userAddressController.getUserAddressById);
  *       500:
  *         description: Internal server error
  */
-router.post('/', userAddressController.createUserAddress);
+router.post('/', authenticateToken, userAddressController.createUserAddress);
 
 /**
  * @swagger
@@ -255,7 +259,7 @@ router.post('/', userAddressController.createUserAddress);
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', userAddressController.updateUserAddress);
+router.put('/:id', authenticateToken, checkAddressOwnership, userAddressController.updateUserAddress);
 
 /**
  * @swagger
@@ -287,7 +291,7 @@ router.put('/:id', userAddressController.updateUserAddress);
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', userAddressController.deleteUserAddress);
+router.delete('/:id', authenticateToken, checkAddressOwnership, userAddressController.deleteUserAddress);
 
 /**
  * @swagger
@@ -330,6 +334,6 @@ router.delete('/:id', userAddressController.deleteUserAddress);
  *       500:
  *         description: Internal server error
  */
-router.post('/:id/set-default', userAddressController.setDefaultAddress);
+router.post('/:id/set-default', authenticateToken, checkAddressOwnership, userAddressController.setDefaultAddress);
 
 export default router;

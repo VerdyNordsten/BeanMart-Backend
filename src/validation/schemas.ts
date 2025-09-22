@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 // User schema
 export const UserSchema = z.object({
-  id: z.string().uuid().optional(),
-  email: z.string().email(),
+  id: z.uuid().optional(),
+  email: z.email(),
   phone: z.string().optional(),
   fullName: z.string().optional(),
   passwordHash: z.string().optional(),
@@ -20,8 +20,8 @@ export const UpdateUserSchema = UserSchema.partial().omit({ id: true, createdAt:
 
 // User Address schema
 export const UserAddressSchema = z.object({
-  id: z.string().uuid().optional(),
-  userId: z.string().uuid(),
+  id: z.uuid().optional(),
+  userId: z.uuid(),
   label: z.string().optional(),
   recipientName: z.string().optional(),
   phone: z.string().optional(),
@@ -35,12 +35,32 @@ export const UserAddressSchema = z.object({
   createdAt: z.date().optional(),
 });
 
-export const CreateUserAddressSchema = UserAddressSchema.omit({ id: true, createdAt: true });
+export const CreateUserAddressSchema = UserAddressSchema.omit({ id: true, createdAt: true }).extend({
+  userId: z.uuid().optional(),
+  user_id: z.uuid(),
+  recipientName: z.string().optional(),
+  recipient_name: z.string().optional(),
+  addressLine1: z.string().optional(),
+  address_line1: z.string().optional(),
+  addressLine2: z.string().optional(),
+  address_line2: z.string().optional(),
+  postalCode: z.string().optional(),
+  postal_code: z.string().optional(),
+  isDefault: z.boolean().default(false),
+  is_default: z.boolean().default(false)
+}).omit({
+  userId: true,
+  recipientName: true,
+  addressLine1: true,
+  addressLine2: true,
+  postalCode: true,
+  isDefault: true
+});
 export const UpdateUserAddressSchema = UserAddressSchema.partial().omit({ id: true, createdAt: true });
 
 // Category schema
 export const CategorySchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.uuid().optional(),
   slug: z.string(),
   name: z.string(),
 });
@@ -50,7 +70,7 @@ export const UpdateCategorySchema = CategorySchema.partial().omit({ id: true });
 
 // Product schema
 export const ProductSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.uuid().optional(),
   slug: z.string(),
   name: z.string(),
   shortDescription: z.string().optional(),
@@ -71,15 +91,15 @@ export const UpdateProductSchema = ProductSchema.partial().omit({ id: true, crea
 
 // Product Category schema
 export const ProductCategorySchema = z.object({
-  productId: z.string().uuid(),
-  categoryId: z.string().uuid(),
+  productId: z.uuidv4(),
+  categoryId: z.uuidv4(),
 });
 
 // Product Image schema
 export const ProductImageSchema = z.object({
-  id: z.string().uuid().optional(),
-  productId: z.string().uuid(),
-  url: z.string().url(),
+  id: z.uuidv4().optional(),
+  productId: z.uuidv4(),
+  url: z.url(),
   position: z.number().int().default(1),
 });
 
@@ -88,8 +108,8 @@ export const UpdateProductImageSchema = ProductImageSchema.partial().omit({ id: 
 
 // Product Option Type schema
 export const ProductOptionTypeSchema = z.object({
-  id: z.string().uuid().optional(),
-  productId: z.string().uuid(),
+  id: z.uuidv4().optional(),
+  productId: z.uuidv4(),
   name: z.string(),
   position: z.number().int().default(1),
 });
@@ -99,8 +119,8 @@ export const UpdateProductOptionTypeSchema = ProductOptionTypeSchema.partial().o
 
 // Product Option schema
 export const ProductOptionSchema = z.object({
-  id: z.string().uuid().optional(),
-  optionTypeId: z.string().uuid(),
+  id: z.uuidv4().optional(),
+  optionTypeId: z.uuidv4(),
   value: z.string(),
   position: z.number().int().default(1),
 });
@@ -110,8 +130,8 @@ export const UpdateProductOptionSchema = ProductOptionSchema.partial().omit({ id
 
 // Product Variant schema
 export const ProductVariantSchema = z.object({
-  id: z.string().uuid().optional(),
-  productId: z.string().uuid(),
+  id: z.uuidv4().optional(),
+  productId: z.uuidv4(),
   sku: z.string().optional(),
   price: z.number(),
   compareAtPrice: z.number().optional(),
@@ -130,9 +150,9 @@ export const UpdateProductVariantSchema = ProductVariantSchema.partial().omit({ 
 
 // Variant Image schema
 export const VariantImageSchema = z.object({
-  id: z.string().uuid().optional(),
-  variantId: z.string().uuid(),
-  url: z.string().url(),
+  id: z.uuidv4().optional(),
+  variantId: z.uuidv4(),
+  url: z.url(),
   position: z.number().int().default(1),
 });
 
@@ -141,8 +161,8 @@ export const UpdateVariantImageSchema = VariantImageSchema.partial().omit({ id: 
 
 // Order schema
 export const OrderSchema = z.object({
-  id: z.string().uuid().optional(),
-  userId: z.string().uuid(),
+  id: z.uuidv4().optional(),
+  userId: z.uuidv4(),
   orderNumber: z.string(),
   status: z.string().default('pending'),
   totalAmount: z.number(),
@@ -156,7 +176,7 @@ export const OrderSchema = z.object({
 
 export const CreateOrderSchema = OrderSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
   items: z.array(z.object({
-    productVariantId: z.string().uuid(),
+    productVariantId: z.uuidv4(),
     quantity: z.number().int().positive(),
     pricePerUnit: z.number().positive(),
     totalPrice: z.number().positive()
@@ -166,9 +186,9 @@ export const UpdateOrderSchema = OrderSchema.partial().omit({ id: true, createdA
 
 // Order Item schema
 export const OrderItemSchema = z.object({
-  id: z.string().uuid().optional(),
-  orderId: z.string().uuid(),
-  productVariantId: z.string().uuid(),
+  id: z.uuidv4().optional(),
+  orderId: z.uuidv4(),
+  productVariantId: z.uuidv4(),
   quantity: z.number().int().positive(),
   pricePerUnit: z.number().positive(),
   totalPrice: z.number().positive(),

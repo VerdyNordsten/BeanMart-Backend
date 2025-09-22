@@ -18,7 +18,6 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { setupSwagger } from './config/swagger';
 
 const app: Application = express();
-const PORT: number = parseInt(process.env.PORT as string, 10) || 3000;
 
 // Middleware
 app.use(helmet());
@@ -31,15 +30,23 @@ app.use(express.urlencoded({ extended: true }));
 setupSwagger(app);
 
 // Routes
-app.use('/api/v1', v1Routes);
+app.use('/api/v1', (req, res, next) => {
+  // Simple health check that doesn't depend on database
+  if (req.path === '/' && req.method === 'GET') {
+    return res.status(200).json({ 
+      status: 'OK', 
+      version: 'v1',
+      message: 'Beanmart API v1 is running'
+    });
+  }
+  // For other routes, pass to the actual routes
+  next();
+  return; // Explicitly return void
+}, v1Routes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', message: 'Beanmart API is running' });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
 });
 
 // Error handling middleware

@@ -5,7 +5,7 @@ interface AppError extends Error {
 }
 
 // Error handling middleware
-export const errorHandler = (err: AppError, req: Request, res: Response, _next: NextFunction) => {
+export const errorHandler = (err: AppError, req: Request, res: Response, _next: NextFunction): void => {
   console.error(err.stack);
   
   // Default error response
@@ -20,7 +20,7 @@ export const errorHandler = (err: AppError, req: Request, res: Response, _next: 
 };
 
 // 404 handler middleware
-export const notFoundHandler = (req: Request, res: Response, _next: NextFunction) => {
+export const notFoundHandler = (req: Request, res: Response, _next: NextFunction): void => {
   res.status(404).json({
     success: false,
     error: 'Route not found'

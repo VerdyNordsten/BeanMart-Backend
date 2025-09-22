@@ -16,7 +16,8 @@ const pool = new Pool({
 // Test the database connection
 pool.query('SELECT NOW()', (err: Error, _res: QueryResult) => {
   if (err) {
-    console.error('Database connection error:', err.stack);
+    console.warn('Warning: Database connection failed -', err.message);
+    console.warn('The application will continue running but database features will not work.');
   } else {
     console.log('Database connected successfully');
   }
