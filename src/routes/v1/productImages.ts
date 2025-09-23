@@ -47,6 +47,7 @@ const productImageController = new ProductImageController();
  *   get:
  *     summary: Get all images for a product
  *     tags: [Product Images]
+ *     security: []  # No authentication required
  *     parameters:
  *       - in: path
  *         name: product_id
@@ -68,6 +69,8 @@ const productImageController = new ProductImageController();
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/ProductImage'
+ *       404:
+ *         description: Product not found
  *       500:
  *         description: Internal server error
  */

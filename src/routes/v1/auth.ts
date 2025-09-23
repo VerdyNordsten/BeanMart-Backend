@@ -74,6 +74,7 @@ const authController = new AuthController();
  *   post:
  *     summary: Register a new user
  *     tags: [Authentication]
+ *     security: []  # No authentication required
  *     requestBody:
  *       required: true
  *       content:
@@ -126,8 +127,9 @@ router.post('/register', (req: Request, res: Response) => authController.registe
  * @swagger
  * /auth/login:
  *   post:
- *     summary: Login user or admin
+ *     summary: Login as user or admin
  *     tags: [Authentication]
+ *     security: []  # No authentication required
  *     requestBody:
  *       required: true
  *       content:

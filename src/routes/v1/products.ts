@@ -90,6 +90,7 @@ const productController = new ProductController();
  *   get:
  *     summary: Get all products
  *     tags: [Products]
+ *     security: []  # No authentication required
  *     responses:
  *       200:
  *         description: List of all products
@@ -115,6 +116,7 @@ router.get('/', productController.getAllProducts);
  *   get:
  *     summary: Get active products
  *     tags: [Products]
+ *     security: []  # No authentication required
  *     responses:
  *       200:
  *         description: List of active products
@@ -140,6 +142,7 @@ router.get('/active', productController.getActiveProducts);
  *   get:
  *     summary: Get a product by ID
  *     tags: [Products]
+ *     security: []  # No authentication required
  *     parameters:
  *       - in: path
  *         name: id
@@ -172,6 +175,7 @@ router.get('/:id', productController.getProductById);
  *   get:
  *     summary: Get a product by slug
  *     tags: [Products]
+ *     security: []  # No authentication required
  *     parameters:
  *       - in: path
  *         name: slug

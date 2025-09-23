@@ -88,6 +88,7 @@ const productVariantController = new ProductVariantController();
  *   get:
  *     summary: Get all variants for a product
  *     tags: [Product Variants]
+ *     security: []  # No authentication required
  *     parameters:
  *       - in: path
  *         name: product_id
@@ -109,6 +110,8 @@ const productVariantController = new ProductVariantController();
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/ProductVariant'
+ *       404:
+ *         description: Product not found
  *       500:
  *         description: Internal server error
  */
@@ -120,6 +123,7 @@ router.get('/product/:product_id', productVariantController.getProductVariants);
  *   get:
  *     summary: Get active variants for a product
  *     tags: [Product Variants]
+ *     security: []  # No authentication required
  *     parameters:
  *       - in: path
  *         name: product_id
@@ -141,6 +145,8 @@ router.get('/product/:product_id', productVariantController.getProductVariants);
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/ProductVariant'
+ *       404:
+ *         description: Product not found
  *       500:
  *         description: Internal server error
  */

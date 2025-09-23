@@ -42,6 +42,7 @@ const categoryController = new CategoryController();
  *   get:
  *     summary: Get all categories
  *     tags: [Categories]
+ *     security: []  # No authentication required
  *     responses:
  *       200:
  *         description: List of all categories
