@@ -3,34 +3,65 @@ import pool from '../config/db';
 import type { QueryResult } from 'pg';
 import { CreateProductVariantSchema, UpdateProductVariantSchema } from '../validation/schemas';
 import type { z } from 'zod';
+import { VariantImageModel } from './VariantImageModel';
+
+const variantImageModel = new VariantImageModel();
 
 export class ProductVariantModel {
-  // Find variants by product ID
+  // Find variants by product ID with images
   async findByProductId(product_id: string): Promise<ProductVariant[]> {
     const query = 'SELECT * FROM product_variants WHERE product_id = $1 ORDER BY is_active DESC, created_at DESC';
     const result: QueryResult = await pool.query(query, [product_id]);
-    return result.rows;
+    
+    // Get images for each variant
+    const variantsWithImages = await Promise.all(
+      result.rows.map(async (variant) => {
+        const images = await variantImageModel.findByVariantId(variant.id);
+        return {
+          ...variant,
+          images
+        };
+      })
+    );
+    
+    return variantsWithImages;
   }
 
-  // Find active variants by product ID
+  // Find active variants by product ID with images
   async findActiveByProductId(product_id: string): Promise<ProductVariant[]> {
     const query = 'SELECT * FROM product_variants WHERE product_id = $1 AND is_active = true ORDER BY created_at DESC';
     const result: QueryResult = await pool.query(query, [product_id]);
-    return result.rows;
+    
+    // Get images for each variant
+    const variantsWithImages = await Promise.all(
+      result.rows.map(async (variant) => {
+        const images = await variantImageModel.findByVariantId(variant.id);
+        return {
+          ...variant,
+          images
+        };
+      })
+    );
+    
+    return variantsWithImages;
   }
 
-  // Find variant by ID
+  // Find variant by ID with images
   async findById(id: string): Promise<ProductVariant | null> {
     const query = 'SELECT * FROM product_variants WHERE id = $1';
     const result: QueryResult = await pool.query(query, [id]);
-    return result.rows.length > 0 ? result.rows[0] : null;
-  }
-
-  // Find variant by SKU
-  async findBySku(sku: string): Promise<ProductVariant | null> {
-    const query = 'SELECT * FROM product_variants WHERE sku = $1';
-    const result: QueryResult = await pool.query(query, [sku]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    const variant = result.rows[0];
+    const images = await variantImageModel.findByVariantId(variant.id);
+    
+    return {
+      ...variant,
+      images
+    };
   }
 
   // Create a new product variant
@@ -38,19 +69,15 @@ export class ProductVariantModel {
     // Validate input
     const validatedData = CreateProductVariantSchema.parse(variantData);
     
-    const query = `INSERT INTO product_variants (product_id, sku, price, compare_at_price, stock, 
-                   weight_gram, option1_value, option2_value, option3_value, is_active) 
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`;
+    const query = `INSERT INTO product_variants (product_id, price, compare_at_price, stock, 
+                   weight_gram, is_active) 
+                   VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
     const values = [
       validatedData.productId,
-      validatedData.sku,
       validatedData.price,
       validatedData.compareAtPrice,
       validatedData.stock,
       validatedData.weightGram,
-      validatedData.option1Value,
-      validatedData.option2Value,
-      validatedData.option3Value,
       validatedData.isActive
     ];
     
@@ -71,16 +98,13 @@ export class ProductVariantModel {
     const fieldMap: Record<string, string> = {
       compareAtPrice: 'compare_at_price',
       weightGram: 'weight_gram',
-      option1Value: 'option1_value',
-      option2Value: 'option2_value',
-      option3Value: 'option3_value',
       isActive: 'is_active'
     };
     
     for (const [key, value] of Object.entries(validatedData)) {
       if (value !== undefined) {
         const dbField = fieldMap[key] || key;
-        fields.push(`${dbField} = ${index}`);
+        fields.push(`${dbField} = $${index}`);
         values.push(value);
         index++;
       }
@@ -91,7 +115,7 @@ export class ProductVariantModel {
     }
     
     values.push(id);
-    const query = `UPDATE product_variants SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ${index} RETURNING *`;
+    const query = `UPDATE product_variants SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${index} RETURNING *`;
     const result: QueryResult = await pool.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
   }

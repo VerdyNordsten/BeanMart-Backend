@@ -1,24 +1,24 @@
 import type { Response } from 'express';
 import { uploadFile, generateUniqueFilename } from '../services/storageService';
-import { ProductImageModel } from '../models/ProductImageModel';
+import { VariantImageModel } from '../models/VariantImageModel';
 import { z } from 'zod';
 import type { AdminAuthRequest } from '../middleware/adminAuth';
 
-const productImageModel = new ProductImageModel();
+const variantImageModel = new VariantImageModel();
 
-// Schema for product image upload
-export const ProductImageUploadSchema = z.object({
-  productId: z.string().uuid(),
+// Schema for variant image upload
+export const VariantImageUploadSchema = z.object({
+  variantId: z.string().uuid(),
   position: z.number().int().default(1),
 });
 
 export class FileUploadController {
   /**
-   * Upload a product image
+   * Upload a variant image
    * @param req - Express request object
    * @param res - Express response object
    */
-  async uploadProductImage(req: AdminAuthRequest, res: Response): Promise<void> {
+  async uploadVariantImage(req: AdminAuthRequest, res: Response): Promise<void> {
     try {
       // Check if user is admin
       if (!req.isAdmin) {
@@ -41,8 +41,8 @@ export class FileUploadController {
       // Parse and validate request body
       const parsedPosition = parseInt(req.body.position, 10) || 1;
       
-      const { productId, position } = ProductImageUploadSchema.parse({
-        productId: req.body.productId,
+      const { variantId, position } = VariantImageUploadSchema.parse({
+        variantId: req.body.variantId,
         position: parsedPosition,
       });
 
@@ -55,8 +55,8 @@ export class FileUploadController {
       );
 
       // Save image reference to database
-      const productImage = await productImageModel.create({
-        productId,
+      const variantImage = await variantImageModel.create({
+        variantId,
         url: uploadResult.url,
         position,
       });
@@ -64,10 +64,10 @@ export class FileUploadController {
       res.status(201).json({ 
         success: true, 
         data: {
-          ...productImage,
+          ...variantImage,
           storageKey: uploadResult.key
         },
-        message: 'Product image uploaded successfully'
+        message: 'Variant image uploaded successfully'
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -77,10 +77,10 @@ export class FileUploadController {
           errors: error.issues 
         });
       } else {
-        console.error('Error uploading product image:', error);
+        console.error('Error uploading variant image:', error);
         res.status(500).json({ 
           success: false, 
-          message: 'Error uploading product image', 
+          message: 'Error uploading variant image', 
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
@@ -88,11 +88,11 @@ export class FileUploadController {
   }
 
   /**
-   * Upload multiple product images
+   * Upload multiple variant images
    * @param req - Express request object
    * @param res - Express response object
    */
-  async uploadProductImages(req: AdminAuthRequest, res: Response): Promise<void> {
+  async uploadVariantImages(req: AdminAuthRequest, res: Response): Promise<void> {
     try {
       // Check if user is admin
       if (!req.isAdmin) {
@@ -115,8 +115,8 @@ export class FileUploadController {
       // Parse and validate request body
       const parsedPosition = parseInt(req.body.position, 10) || 1;
       
-      const { productId } = ProductImageUploadSchema.parse({
-        productId: req.body.productId,
+      const { variantId } = VariantImageUploadSchema.parse({
+        variantId: req.body.variantId,
         position: parsedPosition,
       });
 
@@ -139,14 +139,14 @@ export class FileUploadController {
         );
 
         // Save image reference to database
-        const productImage = await productImageModel.create({
-          productId,
+        const variantImage = await variantImageModel.create({
+          variantId,
           url: uploadResult.url,
           position: filePosition,
         });
 
         uploadedImages.push({
-          ...productImage,
+          ...variantImage,
           storageKey: uploadResult.key
         });
       }
@@ -154,7 +154,7 @@ export class FileUploadController {
       res.status(201).json({ 
         success: true, 
         data: uploadedImages,
-        message: `${uploadedImages.length} product images uploaded successfully`
+        message: `${uploadedImages.length} variant images uploaded successfully`
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -164,10 +164,10 @@ export class FileUploadController {
           errors: error.issues 
         });
       } else {
-        console.error('Error uploading product images:', error);
+        console.error('Error uploading variant images:', error);
         res.status(500).json({ 
           success: false, 
-          message: 'Error uploading product images', 
+          message: 'Error uploading variant images', 
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }

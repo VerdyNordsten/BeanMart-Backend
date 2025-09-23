@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { ProductVariantController } from '../../controllers/ProductVariantController';
+import { authenticateToken } from '../../middleware/auth';
+import type { AuthRequest } from '../../middleware/auth';
 
 /**
  * @swagger
@@ -26,9 +28,6 @@ import { ProductVariantController } from '../../controllers/ProductVariantContro
  *         product_id:
  *           type: string
  *           description: The ID of the product
- *         sku:
- *           type: string
- *           description: Unique SKU for the variant
  *         price:
  *           type: number
  *           format: float
@@ -43,15 +42,6 @@ import { ProductVariantController } from '../../controllers/ProductVariantContro
  *         weight_gram:
  *           type: integer
  *           description: Weight in grams
- *         option1_value:
- *           type: string
- *           description: Value for first option
- *         option2_value:
- *           type: string
- *           description: Value for second option
- *         option3_value:
- *           type: string
- *           description: Value for third option
  *         is_active:
  *           type: boolean
  *           description: Whether the variant is active
@@ -66,14 +56,10 @@ import { ProductVariantController } from '../../controllers/ProductVariantContro
  *       example:
  *         id: 550e8400-e29b-41d4-a716-446655440000
  *         product_id: 550e8400-e29b-41d4-a716-446655440001
- *         sku: CB-MED-250
  *         price: 125000
  *         compare_at_price: 150000
  *         stock: 50
  *         weight_gram: 250
- *         option1_value: Medium
- *         option2_value: 250g
- *         option3_value: Whole Bean
  *         is_active: true
  *         created_at: 2023-01-01T00:00:00.000Z
  *         updated_at: 2023-01-01T00:00:00.000Z
@@ -158,6 +144,7 @@ router.get('/product/:product_id/active', productVariantController.getActiveProd
  *   get:
  *     summary: Get a product variant by ID
  *     tags: [Product Variants]
+ *     security: []  # No authentication required
  *     parameters:
  *       - in: path
  *         name: id
@@ -186,42 +173,12 @@ router.get('/:id', productVariantController.getProductVariantById);
 
 /**
  * @swagger
- * /product-variants/sku/{sku}:
- *   get:
- *     summary: Get a product variant by SKU
- *     tags: [Product Variants]
- *     parameters:
- *       - in: path
- *         name: sku
- *         schema:
- *           type: string
- *         required: true
- *         description: Product Variant SKU
- *     responses:
- *       200:
- *         description: Product variant details
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   $ref: '#/components/schemas/ProductVariant'
- *       404:
- *         description: Product variant not found
- *       500:
- *         description: Internal server error
- */
-router.get('/sku/:sku', productVariantController.getProductVariantBySku);
-
-/**
- * @swagger
  * /product-variants:
  *   post:
- *     summary: Create a new product variant
+ *     summary: Create a new product variant (admin only)
  *     tags: [Product Variants]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -236,8 +193,6 @@ router.get('/sku/:sku', productVariantController.getProductVariantBySku);
  *             properties:
  *               product_id:
  *                 type: string
- *               sku:
- *                 type: string
  *               price:
  *                 type: number
  *                 format: float
@@ -248,12 +203,6 @@ router.get('/sku/:sku', productVariantController.getProductVariantBySku);
  *                 type: integer
  *               weight_gram:
  *                 type: integer
- *               option1_value:
- *                 type: string
- *               option2_value:
- *                 type: string
- *               option3_value:
- *                 type: string
  *               is_active:
  *                 type: boolean
  *     responses:
@@ -268,17 +217,29 @@ router.get('/sku/:sku', productVariantController.getProductVariantBySku);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/ProductVariant'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       500:
  *         description: Internal server error
  */
-router.post('/', productVariantController.createProductVariant);
+router.post('/', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void productVariantController.createProductVariant(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /product-variants/{id}:
  *   put:
- *     summary: Update a product variant
+ *     summary: Update a product variant (admin only)
  *     tags: [Product Variants]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -293,8 +254,6 @@ router.post('/', productVariantController.createProductVariant);
  *           schema:
  *             type: object
  *             properties:
- *               sku:
- *                 type: string
  *               price:
  *                 type: number
  *                 format: float
@@ -305,12 +264,6 @@ router.post('/', productVariantController.createProductVariant);
  *                 type: integer
  *               weight_gram:
  *                 type: integer
- *               option1_value:
- *                 type: string
- *               option2_value:
- *                 type: string
- *               option3_value:
- *                 type: string
  *               is_active:
  *                 type: boolean
  *     responses:
@@ -325,19 +278,31 @@ router.post('/', productVariantController.createProductVariant);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/ProductVariant'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: Product variant not found
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', productVariantController.updateProductVariant);
+router.put('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void productVariantController.updateProductVariant(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /product-variants/{id}:
  *   delete:
- *     summary: Delete a product variant
+ *     summary: Delete a product variant (admin only)
  *     tags: [Product Variants]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -357,11 +322,21 @@ router.put('/:id', productVariantController.updateProductVariant);
  *                   type: boolean
  *                 message:
  *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: Product variant not found
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', productVariantController.deleteProductVariant);
+router.delete('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void productVariantController.deleteProductVariant(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 export default router;

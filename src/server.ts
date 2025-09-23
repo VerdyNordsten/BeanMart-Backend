@@ -6,4 +6,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`API v1: http://localhost:${PORT}/api/v1`);
   console.log(`Swagger docs: http://localhost:${PORT}/api-docs`);
+  console.log('Swagger JSON available at http://localhost:3000/api-docs.json');
 });

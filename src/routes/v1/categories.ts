@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { CategoryController } from '../../controllers/CategoryController';
+import { authenticateToken } from '../../middleware/auth';
+import type { AuthRequest } from '../../middleware/auth';
 
 /**
  * @swagger
@@ -130,8 +132,10 @@ router.get('/slug/:slug', categoryController.getCategoryBySlug);
  * @swagger
  * /categories:
  *   post:
- *     summary: Create a new category
+ *     summary: Create a new category (admin only)
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -158,17 +162,29 @@ router.get('/slug/:slug', categoryController.getCategoryBySlug);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/Category'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       500:
  *         description: Internal server error
  */
-router.post('/', categoryController.createCategory);
+router.post('/', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void categoryController.createCategory(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /categories/{id}:
  *   put:
- *     summary: Update a category
+ *     summary: Update a category (admin only)
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -199,19 +215,31 @@ router.post('/', categoryController.createCategory);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/Category'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: Category not found
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', categoryController.updateCategory);
+router.put('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void categoryController.updateCategory(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /categories/{id}:
  *   delete:
- *     summary: Delete a category
+ *     summary: Delete a category (admin only)
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -231,12 +259,22 @@ router.put('/:id', categoryController.updateCategory);
  *                   type: boolean
  *                 message:
  *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: Category not found
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', categoryController.deleteCategory);
+router.delete('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void categoryController.deleteCategory(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger

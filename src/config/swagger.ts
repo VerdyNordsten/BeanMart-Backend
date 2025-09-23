@@ -43,7 +43,4 @@ export const setupSwagger = (app: Application) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(specs);
   });
-  
-  console.log('Swagger docs available at http://localhost:3000/api-docs');
-  console.log('Swagger JSON available at http://localhost:3000/api-docs.json');
 };

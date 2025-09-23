@@ -8,16 +8,12 @@
     "start": "node dist/server.js",
     "dev": "nodemon --exec ts-node src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:api": "ts-node test-api.ts",
-    "test:storage": "ts-node test-storage.ts",
-    "test:api-upload": "ts-node test-api-upload.ts",
     "db:init": "ts-node src/scripts/init-database.ts",
-    "admin:create": "node src/scripts/create-admin.js",
-    "admin:list": "node src/scripts/list-admins.js",
-    "admin:activate": "node src/scripts/activate-admin.js",
-    "admin:deactivate": "node src/scripts/deactivate-admin.js",
     "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix"
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "admin:create": "node src/scripts/create-admin.js --create",
+    "admin:list": "node src/scripts/create-admin.js --list",
+    "admin:update": "node src/scripts/create-admin.js --update"
   },
   "keywords": [
     "express",

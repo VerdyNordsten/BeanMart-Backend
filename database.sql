@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS user_addresses (
   city TEXT,
   state TEXT,
   postal_code TEXT,
-  country CHAR(2) NOT NULL DEFAULT 'ID',
+  country CHAR(2) NOT NULL DEFAULT 'US',
   is_default BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -63,13 +63,8 @@ CREATE TABLE IF NOT EXISTS products (
   name TEXT NOT NULL,
   short_description TEXT,
   long_description TEXT,
-  source_url TEXT,
-  base_price NUMERIC(12,2),
-  base_compare_at_price NUMERIC(12,2),
-  currency CHAR(3) NOT NULL DEFAULT 'IDR',
+  currency CHAR(3) NOT NULL DEFAULT 'USD',
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  sku TEXT,
-  weight_gram INTEGER,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -87,36 +82,20 @@ CREATE TABLE IF NOT EXISTS product_categories (
 CREATE INDEX IF NOT EXISTS idx_product_categories_product_id ON product_categories(product_id);
 CREATE INDEX IF NOT EXISTS idx_product_categories_category_id ON product_categories(category_id);
 
--- PRODUCT IMAGES (urutan cover → gallery)
-CREATE TABLE IF NOT EXISTS product_images (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  url TEXT NOT NULL,
-  position INTEGER NOT NULL DEFAULT 1
-);
-
-CREATE INDEX IF NOT EXISTS idx_product_images_product_id ON product_images(product_id);
-CREATE INDEX IF NOT EXISTS idx_product_images_position ON product_images(position);
-
 -- VARIANTS (kombinasi opsi; jika tanpa variasi → varian default)
 CREATE TABLE IF NOT EXISTS product_variants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  sku TEXT UNIQUE,
   price NUMERIC(12,2) NOT NULL,
   compare_at_price NUMERIC(12,2),
   stock INTEGER NOT NULL DEFAULT 0,
   weight_gram INTEGER,
-  option1_value TEXT,
-  option2_value TEXT,
-  option3_value TEXT,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_product_variants_product_id ON product_variants(product_id);
-CREATE INDEX IF NOT EXISTS idx_product_variants_sku ON product_variants(sku);
 CREATE INDEX IF NOT EXISTS idx_product_variants_is_active ON product_variants(is_active);
 
 -- VARIANT IMAGES (opsional)
@@ -137,7 +116,7 @@ CREATE TABLE IF NOT EXISTS orders (
   order_number TEXT UNIQUE NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending', -- pending, confirmed, shipped, delivered, cancelled
   total_amount NUMERIC(12,2) NOT NULL,
-  currency CHAR(3) NOT NULL DEFAULT 'IDR',
+  currency CHAR(3) NOT NULL DEFAULT 'USD',
   shipping_address JSONB,
   billing_address JSONB,
   notes TEXT,

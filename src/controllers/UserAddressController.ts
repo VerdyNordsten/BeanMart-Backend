@@ -76,8 +76,8 @@ export class UserAddressController {
       // Validate input and prevent user_id modification
       const addressData = UpdateUserAddressSchema.parse(req.body);
       // Remove user_id from the data to prevent modification
-      delete (addressData as any).user_id;
-      const safeAddressData = addressData;
+      const safeAddressData = { ...addressData };
+      delete (safeAddressData as Record<string, unknown>).user_id;
 
       const updatedAddress = await userAddressModel.update(id, safeAddressData);
       res.status(200).json({ success: true, data: updatedAddress });

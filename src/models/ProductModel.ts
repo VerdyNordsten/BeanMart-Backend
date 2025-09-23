@@ -9,83 +9,167 @@ export class ProductModel {
   async findAll(): Promise<Product[]> {
     const query = 'SELECT * FROM products ORDER BY created_at DESC';
     const result: QueryResult = await pool.query(query);
-    return result.rows;
+    
+    // Map database snake_case fields to camelCase for consistent API response
+    return result.rows.map(product => ({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      short_description: product.short_description,
+      long_description: product.long_description,
+      currency: product.currency,
+      is_active: product.is_active,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at
+    }));
   }
 
   // Find product by ID
   async findById(id: string): Promise<Product | null> {
     const query = 'SELECT * FROM products WHERE id = $1';
     const result: QueryResult = await pool.query(query, [id]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    // Map database snake_case fields to camelCase for consistent API response
+    const product = result.rows[0];
+    return {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      short_description: product.short_description,
+      long_description: product.long_description,
+      currency: product.currency,
+      is_active: product.is_active,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at
+    };
   }
 
   // Find products by slug
   async findBySlug(slug: string): Promise<Product | null> {
     const query = 'SELECT * FROM products WHERE slug = $1';
     const result: QueryResult = await pool.query(query, [slug]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    // Map database snake_case fields to camelCase for consistent API response
+    const product = result.rows[0];
+    return {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      short_description: product.short_description,
+      long_description: product.long_description,
+      currency: product.currency,
+      is_active: product.is_active,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at
+    };
   }
 
   // Find active products
   async findActive(): Promise<Product[]> {
     const query = 'SELECT * FROM products WHERE is_active = true ORDER BY created_at DESC';
     const result: QueryResult = await pool.query(query);
-    return result.rows;
+    
+    // Map database snake_case fields to camelCase for consistent API response
+    return result.rows.map(product => ({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      short_description: product.short_description,
+      long_description: product.long_description,
+      currency: product.currency,
+      is_active: product.is_active,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at
+    }));
   }
 
   // Create a new product
   async create(productData: z.infer<typeof CreateProductSchema>): Promise<Product> {
-    // Validate input
+    // Validate input with schema
     const validatedData = CreateProductSchema.parse(productData);
     
+    // Use the validated data directly since Zod will apply defaults
     const query = `INSERT INTO products (slug, name, short_description, long_description, 
-                   source_url, base_price, base_compare_at_price, currency, is_active, sku, weight_gram) 
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`;
+                   currency, is_active) 
+                   VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
     const values = [
       validatedData.slug,
       validatedData.name,
-      validatedData.shortDescription,
-      validatedData.longDescription,
-      validatedData.sourceUrl,
-      validatedData.basePrice,
-      validatedData.baseCompareAtPrice,
-      validatedData.currency,
-      validatedData.isActive,
-      validatedData.sku,
-      validatedData.weightGram
+      validatedData.short_description,
+      validatedData.long_description,
+      validatedData.currency, // Zod will ensure this has the default 'USD' if not provided
+      validatedData.is_active // Zod will ensure this has the default true if not provided
     ];
     
     const result: QueryResult = await pool.query(query, values);
-    return result.rows[0];
+    
+    // Map database snake_case fields to camelCase for consistent API response
+    const product = result.rows[0];
+    return {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      short_description: product.short_description,
+      long_description: product.long_description,
+      currency: product.currency,
+      is_active: product.is_active,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at
+    };
   }
 
   // Update a product
   async update(id: string, productData: z.infer<typeof UpdateProductSchema>): Promise<Product | null> {
-    // Validate input
+    // Validate input with schema
     const validatedData = UpdateProductSchema.parse(productData);
     
     const fields = [];
     const values = [];
     let index = 1;
     
-    // Map camelCase to snake_case for database fields
-    const fieldMap: Record<string, string> = {
-      shortDescription: 'short_description',
-      longDescription: 'long_description',
-      sourceUrl: 'source_url',
-      basePrice: 'base_price',
-      baseCompareAtPrice: 'base_compare_at_price',
-      isActive: 'is_active',
-      weightGram: 'weight_gram'
-    };
+    // Add fields to update only if they are defined in the validated data
+    if (validatedData.slug !== undefined) {
+      fields.push(`slug = ${index}`);
+      values.push(validatedData.slug);
+      index++;
+    }
     
-    for (const [key, value] of Object.entries(validatedData)) {
-      if (value !== undefined) {
-        const dbField = fieldMap[key] || key;
-        fields.push(`${dbField} = ${index}`);
-        values.push(value);
-        index++;
-      }
+    if (validatedData.name !== undefined) {
+      fields.push(`name = ${index}`);
+      values.push(validatedData.name);
+      index++;
+    }
+    
+    if (validatedData.short_description !== undefined) {
+      fields.push(`short_description = ${index}`);
+      values.push(validatedData.short_description);
+      index++;
+    }
+    
+    if (validatedData.long_description !== undefined) {
+      fields.push(`long_description = ${index}`);
+      values.push(validatedData.long_description);
+      index++;
+    }
+    
+    if (validatedData.currency !== undefined) {
+      fields.push(`currency = ${index}`);
+      values.push(validatedData.currency);
+      index++;
+    }
+    
+    if (validatedData.is_active !== undefined) {
+      fields.push(`is_active = ${index}`);
+      values.push(validatedData.is_active);
+      index++;
     }
     
     if (fields.length === 0) {
@@ -95,7 +179,24 @@ export class ProductModel {
     values.push(id);
     const query = `UPDATE products SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ${index} RETURNING *`;
     const result: QueryResult = await pool.query(query, values);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    // Map database snake_case fields to camelCase for consistent API response
+    const product = result.rows[0];
+    return {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      short_description: product.short_description,
+      long_description: product.long_description,
+      currency: product.currency,
+      is_active: product.is_active,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at
+    };
   }
 
   // Delete a product

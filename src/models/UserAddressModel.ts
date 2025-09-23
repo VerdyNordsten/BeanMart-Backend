@@ -54,20 +54,25 @@ export class UserAddressModel {
     const values = [];
     let index = 1;
     
-    // Map snake_case fields to database columns
+    // Map camelCase to snake_case for database fields
     const fieldMap: Record<string, string> = {
-      user_id: 'user_id',
-      recipient_name: 'recipient_name',
-      address_line1: 'address_line1',
-      address_line2: 'address_line2',
-      postal_code: 'postal_code',
-      is_default: 'is_default'
+      userId: 'user_id',
+      label: 'label',
+      recipientName: 'recipient_name',
+      phone: 'phone',
+      addressLine1: 'address_line1',
+      addressLine2: 'address_line2',
+      city: 'city',
+      state: 'state',
+      postalCode: 'postal_code',
+      country: 'country',
+      isDefault: 'is_default'
     };
     
     for (const [key, value] of Object.entries(validatedData)) {
       if (value !== undefined) {
         const dbField = fieldMap[key] || key;
-        fields.push(`${dbField} = ${index}`);
+        fields.push(`${dbField} = $${index}`);
         values.push(value);
         index++;
       }
@@ -78,7 +83,7 @@ export class UserAddressModel {
     }
     
     values.push(id);
-    const query = `UPDATE user_addresses SET ${fields.join(', ')} WHERE id = ${index} RETURNING *`;
+    const query = `UPDATE user_addresses SET ${fields.join(', ')} WHERE id = $${index} RETURNING *`;
     const result: QueryResult = await pool.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
   }

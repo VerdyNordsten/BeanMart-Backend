@@ -68,9 +68,7 @@ export class OrderController {
       });
       
       // Generate order number if not provided
-      if (!orderData.orderNumber) {
-        orderData.orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      }
+      orderData.orderNumber ??= `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       
       // Validate order items and calculate total
       let totalAmount = 0;
@@ -85,13 +83,13 @@ export class OrderController {
           
           // Check stock
           if (variant.stock < item.quantity) {
-            res.status(400).json({ success: false, message: `Insufficient stock for ${variant.sku}` });
+            res.status(400).json({ success: false, message: `Insufficient stock for variant ${variant.id}` });
             return;
           }
           
           // Validate price
           if (Math.abs(variant.price - item.pricePerUnit) > 0.01) {
-            res.status(400).json({ success: false, message: `Price mismatch for ${variant.sku}` });
+            res.status(400).json({ success: false, message: `Price mismatch for variant ${variant.id}` });
             return;
           }
           
@@ -103,7 +101,16 @@ export class OrderController {
       orderData.totalAmount = totalAmount;
       
       // Create order
-      const newOrder = await orderModel.create(orderData);
+      const newOrder = await orderModel.create({
+        userId: orderData.userId,
+        orderNumber: orderData.orderNumber!,
+        status: orderData.status,
+        totalAmount: orderData.totalAmount!,
+        currency: orderData.currency,
+        shippingAddress: orderData.shippingAddress,
+        billingAddress: orderData.billingAddress,
+        notes: orderData.notes
+      });
       
       // Create order items
       const orderItems = [];

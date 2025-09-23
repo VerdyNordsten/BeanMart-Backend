@@ -49,7 +49,7 @@ export class CategoryModel {
     
     for (const [key, value] of Object.entries(validatedData)) {
       if (value !== undefined) {
-        fields.push(`${key} = ${index}`);
+        fields.push(`${key} = $${index}`);
         values.push(value);
         index++;
       }
@@ -60,7 +60,7 @@ export class CategoryModel {
     }
     
     values.push(id);
-    const query = `UPDATE categories SET ${fields.join(', ')} WHERE id = ${index} RETURNING *`;
+    const query = `UPDATE categories SET ${fields.join(', ')} WHERE id = $${index} RETURNING *`;
     const result: QueryResult = await pool.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
   }

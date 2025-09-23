@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { VariantImageController } from '../../controllers/VariantImageController';
+import { authenticateToken } from '../../middleware/auth';
+import type { AuthRequest } from '../../middleware/auth';
 
 /**
  * @swagger
@@ -109,8 +111,10 @@ router.get('/:id', variantImageController.getVariantImageById);
  * @swagger
  * /variant-images:
  *   post:
- *     summary: Create a new variant image
+ *     summary: Create a new variant image (admin only)
  *     tags: [Variant Images]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -140,17 +144,29 @@ router.get('/:id', variantImageController.getVariantImageById);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/VariantImage'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       500:
  *         description: Internal server error
  */
-router.post('/', variantImageController.createVariantImage);
+router.post('/', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void variantImageController.createVariantImage(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /variant-images/{id}:
  *   put:
- *     summary: Update a variant image
+ *     summary: Update a variant image (admin only)
  *     tags: [Variant Images]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -181,19 +197,31 @@ router.post('/', variantImageController.createVariantImage);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/VariantImage'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: Variant image not found
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', variantImageController.updateVariantImage);
+router.put('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void variantImageController.updateVariantImage(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /variant-images/{id}:
  *   delete:
- *     summary: Delete a variant image
+ *     summary: Delete a variant image (admin only)
  *     tags: [Variant Images]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -213,11 +241,21 @@ router.put('/:id', variantImageController.updateVariantImage);
  *                   type: boolean
  *                 message:
  *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: Variant image not found
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', variantImageController.deleteVariantImage);
+router.delete('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void variantImageController.deleteVariantImage(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 export default router;

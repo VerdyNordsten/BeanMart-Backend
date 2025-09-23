@@ -37,29 +37,12 @@ import type { AuthRequest } from '../../middleware/auth';
  *         long_description:
  *           type: string
  *           description: Long product description
- *         source_url:
- *           type: string
- *           description: Source URL of the product
- *         base_price:
- *           type: number
- *           format: float
- *           description: Base price of the product
- *         base_compare_at_price:
- *           type: number
- *           format: float
- *           description: Base compare at price (original price)
  *         currency:
  *           type: string
- *           description: Currency code (e.g., IDR)
+ *           description: Currency code (e.g., USD)
  *         is_active:
  *           type: boolean
  *           description: Whether the product is active
- *         sku:
- *           type: string
- *           description: Product SKU
- *         weight_gram:
- *           type: integer
- *           description: Product weight in grams
  *         created_at:
  *           type: string
  *           format: date-time
@@ -73,10 +56,8 @@ import type { AuthRequest } from '../../middleware/auth';
  *         slug: coffee-beans
  *         name: Coffee Beans
  *         short_description: Premium quality coffee beans
- *         base_price: 125000
- *         currency: IDR
+ *         currency: USD
  *         is_active: true
- *         weight_gram: 1000
  *         created_at: 2023-01-01T00:00:00.000Z
  *         updated_at: 2023-01-01T00:00:00.000Z
  */
@@ -230,22 +211,10 @@ router.get('/slug/:slug', productController.getProductBySlug);
  *                 type: string
  *               long_description:
  *                 type: string
- *               source_url:
- *                 type: string
- *               base_price:
- *                 type: number
- *                 format: float
- *               base_compare_at_price:
- *                 type: number
- *                 format: float
  *               currency:
  *                 type: string
  *               is_active:
  *                 type: boolean
- *               sku:
- *                 type: string
- *               weight_gram:
- *                 type: integer
  *     responses:
  *       201:
  *         description: Product created successfully
@@ -303,22 +272,10 @@ router.post('/', authenticateToken, (req: AuthRequest, res) => {
  *                 type: string
  *               long_description:
  *                 type: string
- *               source_url:
- *                 type: string
- *               base_price:
- *                 type: number
- *                 format: float
- *               base_compare_at_price:
- *                 type: number
- *                 format: float
  *               currency:
  *                 type: string
  *               is_active:
  *                 type: boolean
- *               sku:
- *                 type: string
- *               weight_gram:
- *                 type: integer
  *     responses:
  *       200:
  *         description: Product updated successfully
@@ -392,39 +349,6 @@ router.delete('/:id', authenticateToken, (req: AuthRequest, res) => {
   }
 });
 
-/**
- * @swagger
- * /products/{id}/images:
- *   get:
- *     summary: Get all images for a product
- *     tags: [Products]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: Product ID
- *     responses:
- *       200:
- *         description: List of product images
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/ProductImage'
- *       404:
- *         description: Product not found
- *       500:
- *         description: Internal server error
- */
-router.get('/:id/images', productController.getProductImages);
 
 /**
  * @swagger

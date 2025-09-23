@@ -25,7 +25,7 @@ export const checkOwnership = <T>(
       }
 
       // Check ownership
-      if ((entity as any)[userIdField] !== req.userId) {
+      if ((entity as Record<string, unknown>)[userIdField] !== req.userId) {
         res.status(403).json({ 
           success: false, 
           message: 'Not authorized to access this resource' 

@@ -15,9 +15,9 @@ const fileUploadController = new FileUploadController();
 
 /**
  * @swagger
- * /file-upload/product-image:
+ * /file-upload/variant-image:
  *   post:
- *     summary: Upload a product image (admin only)
+ *     summary: Upload a variant image (admin only)
  *     tags: [File Upload]
  *     security:
  *       - bearerAuth: []
@@ -29,22 +29,22 @@ const fileUploadController = new FileUploadController();
  *             type: object
  *             required:
  *               - file
- *               - productId
+ *               - variantId
  *             properties:
  *               file:
  *                 type: string
  *                 format: binary
  *                 description: Image file to upload
- *               productId:
+ *               variantId:
  *                 type: string
  *                 format: uuid
- *                 description: ID of the product to associate with the image
+ *                 description: ID of the variant to associate with the image
  *               position:
  *                 type: integer
  *                 description: Position of the image (1 = cover image)
  *     responses:
  *       201:
- *         description: Product image uploaded successfully
+ *         description: Variant image uploaded successfully
  *         content:
  *           application/json:
  *             schema:
@@ -53,7 +53,7 @@ const fileUploadController = new FileUploadController();
  *                 success:
  *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/ProductImage'
+ *                   $ref: '#/components/schemas/VariantImage'
  *                 message:
  *                   type: string
  *       400:
@@ -65,17 +65,17 @@ const fileUploadController = new FileUploadController();
  *       500:
  *         description: Internal server error
  */
-router.post('/product-image', 
+router.post('/variant-image', 
   authenticateAdmin, 
   upload.single('file'), 
-  (req, res) => fileUploadController.uploadProductImage(req, res)
+  (req, res) => fileUploadController.uploadVariantImage(req, res)
 );
 
 /**
  * @swagger
- * /file-upload/product-images:
+ * /file-upload/variant-images:
  *   post:
- *     summary: Upload multiple product images (admin only)
+ *     summary: Upload multiple variant images (admin only)
  *     tags: [File Upload]
  *     security:
  *       - bearerAuth: []
@@ -87,7 +87,7 @@ router.post('/product-image',
  *             type: object
  *             required:
  *               - files
- *               - productId
+ *               - variantId
  *             properties:
  *               files:
  *                 type: array
@@ -95,10 +95,10 @@ router.post('/product-image',
  *                   type: string
  *                   format: binary
  *                 description: Image files to upload
- *               productId:
+ *               variantId:
  *                 type: string
  *                 format: uuid
- *                 description: ID of the product to associate with the images
+ *                 description: ID of the variant to associate with the images
  *               positions:
  *                 type: array
  *                 items:
@@ -106,7 +106,7 @@ router.post('/product-image',
  *                 description: Positions of the images (1 = cover image)
  *     responses:
  *       201:
- *         description: Product images uploaded successfully
+ *         description: Variant images uploaded successfully
  *         content:
  *           application/json:
  *             schema:
@@ -117,7 +117,7 @@ router.post('/product-image',
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/ProductImage'
+ *                     $ref: '#/components/schemas/VariantImage'
  *                 message:
  *                   type: string
  *       400:
@@ -129,10 +129,10 @@ router.post('/product-image',
  *       500:
  *         description: Internal server error
  */
-router.post('/product-images', 
+router.post('/variant-images', 
   authenticateAdmin, 
   upload.array('files', 10), 
-  (req, res) => fileUploadController.uploadProductImages(req, res)
+  (req, res) => fileUploadController.uploadVariantImages(req, res)
 );
 
 export default router;

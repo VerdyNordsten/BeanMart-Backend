@@ -39,15 +39,10 @@ export interface Product {
   name: string;
   short_description?: string;
   long_description?: string;
-  source_url?: string;
-  base_price?: number;
-  base_compare_at_price?: number;
-  currency: string;
+  currency: string; // 3-letter currency code (e.g. USD, IDR)
   is_active: boolean;
-  sku?: string;
-  weight_gram?: number;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Product Category relation
@@ -56,45 +51,19 @@ export interface ProductCategory {
   category_id: string;
 }
 
-// Product Image entity
-export interface ProductImage {
-  id: string;
-  product_id: string;
-  url: string;
-  position: number;
-}
-
-// Product Option Type entity
-export interface ProductOptionType {
-  id: string;
-  product_id: string;
-  name: string;
-  position: number;
-}
-
-// Product Option entity
-export interface ProductOption {
-  id: string;
-  option_type_id: string;
-  value: string;
-  position: number;
-}
 
 // Product Variant entity
 export interface ProductVariant {
   id: string;
   product_id: string;
-  sku?: string;
   price: number;
   compare_at_price?: number;
   stock: number;
   weight_gram?: number;
-  option1_value?: string;
-  option2_value?: string;
-  option3_value?: string;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
+  images?: VariantImage[];
 }
 
 // Variant Image entity

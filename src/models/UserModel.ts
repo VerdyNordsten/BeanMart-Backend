@@ -41,7 +41,17 @@ export class UserModel {
     ];
     
     const result: QueryResult = await pool.query(query, values);
-    return result.rows[0];
+    
+    // Map database snake_case fields to camelCase for consistent API response
+    const user = result.rows[0];
+    return {
+      id: user.id,
+      email: user.email,
+      phone: user.phone,
+      full_name: user.full_name,
+      password_hash: user.password_hash,
+      created_at: user.created_at
+    };
   }
 
   // Update a user
@@ -53,9 +63,16 @@ export class UserModel {
     const values = [];
     let index = 1;
     
+    // Map camelCase to snake_case for database fields
+    const fieldMap: Record<string, string> = {
+      fullName: 'full_name',
+      passwordHash: 'password_hash'
+    };
+    
     for (const [key, value] of Object.entries(validatedData)) {
       if (value !== undefined) {
-        fields.push(`${key} = ${index}`);
+        const dbField = fieldMap[key] || key;
+        fields.push(`${dbField} = $${index}`);
         values.push(value);
         index++;
       }
@@ -66,9 +83,23 @@ export class UserModel {
     }
     
     values.push(id);
-    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = ${index} RETURNING *`;
+    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = $${index} RETURNING *`;
     const result: QueryResult = await pool.query(query, values);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    // Map database snake_case fields to camelCase for consistent API response
+    const user = result.rows[0];
+    return {
+      id: user.id,
+      email: user.email,
+      phone: user.phone,
+      full_name: user.full_name,
+      password_hash: user.password_hash,
+      created_at: user.created_at
+    };
   }
 
   // Delete a user

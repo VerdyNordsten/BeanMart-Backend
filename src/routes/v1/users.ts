@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { UserController } from '../../controllers/UserController';
+import { authenticateToken } from '../../middleware/auth';
+import type { AuthRequest } from '../../middleware/auth';
 
 /**
  * @swagger
@@ -51,8 +53,10 @@ const userController = new UserController();
  * @swagger
  * /users:
  *   get:
- *     summary: Get all users
+ *     summary: Get all users (admin only)
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of all users
@@ -67,17 +71,29 @@ const userController = new UserController();
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       500:
  *         description: Internal server error
  */
-router.get('/', userController.getAllUsers);
+router.get('/', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void userController.getAllUsers(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Get a user by ID
+ *     summary: Get a user by ID (admin only)
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -97,19 +113,31 @@ router.get('/', userController.getAllUsers);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: User not found
  *       500:
  *         description: Internal server error
  */
-router.get('/:id', userController.getUserById);
+router.get('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void userController.getUserById(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /users:
  *   post:
- *     summary: Create a new user
+ *     summary: Create a new user (admin only)
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -139,17 +167,29 @@ router.get('/:id', userController.getUserById);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       500:
  *         description: Internal server error
  */
-router.post('/', userController.createUser);
+router.post('/', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void userController.createUser(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /users/{id}:
  *   put:
- *     summary: Update a user
+ *     summary: Update a user (admin only)
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -184,19 +224,31 @@ router.post('/', userController.createUser);
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: User not found
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', userController.updateUser);
+router.put('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void userController.updateUser(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 /**
  * @swagger
  * /users/{id}:
  *   delete:
- *     summary: Delete a user
+ *     summary: Delete a user (admin only)
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -216,11 +268,21 @@ router.put('/:id', userController.updateUser);
  *                   type: boolean
  *                 message:
  *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: User not found
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', userController.deleteUser);
+router.delete('/:id', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void userController.deleteUser(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
 
 export default router;

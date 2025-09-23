@@ -1,36 +1,75 @@
 import type { Request, Response } from 'express';
 import { ProductModel } from '../models/ProductModel';
-import { ProductImageModel } from '../models/ProductImageModel';
 import { ProductVariantModel } from '../models/ProductVariantModel';
 import { CreateProductSchema, UpdateProductSchema } from '../validation/schemas';
+import type { VariantImage } from '../models/index';
 import { z } from 'zod';
 
 const productModel = new ProductModel();
-const productImageModel = new ProductImageModel();
 const productVariantModel = new ProductVariantModel();
 
 export class ProductController {
-  // Get all products
+  // Get all products with variants and images
   async getAllProducts(req: Request, res: Response): Promise<void> {
     try {
       const products = await productModel.findAll();
-      res.status(200).json({ success: true, data: products });
+      
+      // Get variants and images for each product
+      const productsWithDetails = await Promise.all(
+        products.map(async (product) => {
+          const variants = await productVariantModel.findByProductId(product.id);
+          return {
+            ...product,
+            variants,
+            images: variants.flatMap(variant => 
+              variant.images ? variant.images.map((img: VariantImage) => ({
+                id: img.id,
+                url: img.url,
+                position: img.position,
+                variant_id: variant.id
+              })) : []
+            )
+          };
+        })
+      );
+      
+      res.status(200).json({ success: true, data: productsWithDetails });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error fetching products', error });
     }
   }
 
-  // Get active products
+  // Get active products with variants and images
   async getActiveProducts(req: Request, res: Response): Promise<void> {
     try {
       const products = await productModel.findActive();
-      res.status(200).json({ success: true, data: products });
+      
+      // Get variants and images for each product
+      const productsWithDetails = await Promise.all(
+        products.map(async (product) => {
+          const variants = await productVariantModel.findActiveByProductId(product.id);
+          return {
+            ...product,
+            variants,
+            images: variants.flatMap(variant => 
+              variant.images ? variant.images.map((img: VariantImage) => ({
+                id: img.id,
+                url: img.url,
+                position: img.position,
+                variant_id: variant.id
+              })) : []
+            )
+          };
+        })
+      );
+      
+      res.status(200).json({ success: true, data: productsWithDetails });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error fetching active products', error });
     }
   }
 
-  // Get product by ID
+  // Get product by ID with variants and images
   async getProductById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -41,13 +80,27 @@ export class ProductController {
         return;
       }
       
-      res.status(200).json({ success: true, data: product });
+      const variants = await productVariantModel.findByProductId(product.id);
+      const productWithDetails = {
+        ...product,
+        variants,
+        images: variants.flatMap(variant => 
+          variant.images ? variant.images.map((img: VariantImage) => ({
+            id: img.id,
+            url: img.url,
+            position: img.position,
+            variant_id: variant.id
+          })) : []
+        )
+      };
+      
+      res.status(200).json({ success: true, data: productWithDetails });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error fetching product', error });
     }
   }
 
-  // Get product by slug
+  // Get product by slug with variants and images
   async getProductBySlug(req: Request, res: Response): Promise<void> {
     try {
       const { slug } = req.params;
@@ -58,7 +111,21 @@ export class ProductController {
         return;
       }
       
-      res.status(200).json({ success: true, data: product });
+      const variants = await productVariantModel.findByProductId(product.id);
+      const productWithDetails = {
+        ...product,
+        variants,
+        images: variants.flatMap(variant => 
+          variant.images ? variant.images.map((img: VariantImage) => ({
+            id: img.id,
+            url: img.url,
+            position: img.position,
+            variant_id: variant.id
+          })) : []
+        )
+      };
+      
+      res.status(200).json({ success: true, data: productWithDetails });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error fetching product', error });
     }
@@ -117,24 +184,6 @@ export class ProductController {
       res.status(200).json({ success: true, message: 'Product deleted successfully' });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error deleting product', error });
-    }
-  }
-
-  // Get product images
-  async getProductImages(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      // Check if product exists
-      const product = await productModel.findById(id);
-      if (!product) {
-        res.status(404).json({ success: false, message: 'Product not found' });
-        return;
-      }
-      
-      const images = await productImageModel.findByProductId(id);
-      res.status(200).json({ success: true, data: images });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Error fetching product images', error });
     }
   }
 

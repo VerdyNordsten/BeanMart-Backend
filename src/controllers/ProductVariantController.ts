@@ -45,23 +45,6 @@ export class ProductVariantController {
     }
   }
 
-  // Get product variant by SKU
-  async getProductVariantBySku(req: Request, res: Response): Promise<void> {
-    try {
-      const { sku } = req.params;
-      const variant = await productVariantModel.findBySku(sku);
-      
-      if (!variant) {
-        res.status(404).json({ success: false, message: 'Product variant not found' });
-        return;
-      }
-      
-      res.status(200).json({ success: true, data: variant });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Error fetching product variant', error });
-    }
-  }
-
   // Create a new product variant
   async createProductVariant(req: Request, res: Response): Promise<void> {
     try {
