@@ -5,13 +5,13 @@ import { Router } from 'express';
 import userRoutes from './v1/users';
 import userAddressRoutes from './v1/userAddresses';
 import productRoutes from './v1/products';
+import combinedProductRoutes from './v1/combinedProduct';
 import categoryRoutes from './v1/categories';
 import productCategoryRoutes from './v1/productCategories';
 import productVariantRoutes from './v1/productVariants';
 import variantImageRoutes from './v1/variantImages';
 import authRoutes from './v1/auth';
 import orderRoutes from './v1/orders';
-import fileUploadRoutes from './v1/fileUpload';
 
 const router: Router = Router();
 
@@ -29,11 +29,11 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/user-addresses', userAddressRoutes);
 router.use('/products', productRoutes);
+router.use('/products', combinedProductRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/product-categories', productCategoryRoutes);
 router.use('/product-variants', productVariantRoutes);
 router.use('/variant-images', variantImageRoutes);
 router.use('/orders', orderRoutes);
-router.use('/file-upload', fileUploadRoutes);
 
 export default router;
