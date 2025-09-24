@@ -72,7 +72,7 @@ export const uploadFile = async (
     await s3Client.send(command);
 
     // Generate the public URL using the public endpoint
-    const url = `${process.env.STORAGE_PUBLIC_ENDPOINT}/${process.env.STORAGE_BUCKET_NAME}/${key}`;
+    const url = `${process.env.STORAGE_ENDPOINT}/${process.env.STORAGE_BUCKET_NAME}/${key}`;
 
     return { url, key };
   } catch (error) {
@@ -115,6 +115,35 @@ export const generateUniqueFilename = (originalName: string): string => {
   const fileExtension = originalName.split('.').pop() ?? '';
   const uuid = uuidv4();
   return `${uuid}.${fileExtension}`;
+};
+
+/**
+ * Extract the storage key from a public URL
+ * @param url - The public URL of the file
+ * @returns string | null - The storage key or null if URL is invalid
+ */
+export const extractKeyFromUrl = (url: string): string | null => {
+  try {
+    // Check if it's a storage URL
+    const storageEndpoint = process.env.STORAGE_ENDPOINT;
+    const bucketName = process.env.STORAGE_BUCKET_NAME;
+    
+    if (!storageEndpoint || !bucketName) {
+      return null;
+    }
+    
+    // Expected URL format: {STORAGE_ENDPOINT}/{BUCKET_NAME}/{key}
+    const expectedPrefix = `${storageEndpoint}/${bucketName}/`;
+    
+    if (url.startsWith(expectedPrefix)) {
+      return url.substring(expectedPrefix.length);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error extracting key from URL:', error);
+    return null;
+  }
 };
 
 export { s3Client };

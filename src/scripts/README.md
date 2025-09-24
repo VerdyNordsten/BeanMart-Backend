@@ -55,3 +55,4 @@ npm run admin:update admin@beanmart.com newpassword456
 - Email harus format yang valid
 - Admin yang dibuat otomatis aktif (is_active = true)
 - Script akan otomatis terhubung ke database menggunakan environment variables
+

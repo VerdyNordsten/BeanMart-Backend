@@ -2,7 +2,7 @@ import type { ProductVariant } from './index';
 import pool from '../config/db';
 import type { QueryResult } from 'pg';
 import { CreateProductVariantSchema, UpdateProductVariantSchema } from '../validation/schemas';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { VariantImageModel } from './VariantImageModel';
 
 const variantImageModel = new VariantImageModel();
@@ -66,19 +66,16 @@ export class ProductVariantModel {
 
   // Create a new product variant
   async create(variantData: z.infer<typeof CreateProductVariantSchema>): Promise<ProductVariant> {
-    // Validate input
-    const validatedData = CreateProductVariantSchema.parse(variantData);
-    
     const query = `INSERT INTO product_variants (product_id, price, compare_at_price, stock, 
                    weight_gram, is_active) 
                    VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
     const values = [
-      validatedData.productId,
-      validatedData.price,
-      validatedData.compareAtPrice,
-      validatedData.stock,
-      validatedData.weightGram,
-      validatedData.isActive
+      variantData.product_id,
+      variantData.price,
+      variantData.compare_at_price,
+      variantData.stock,
+      variantData.weight_gram,
+      variantData.is_active
     ];
     
     const result: QueryResult = await pool.query(query, values);
@@ -87,24 +84,13 @@ export class ProductVariantModel {
 
   // Update a product variant
   async update(id: string, variantData: z.infer<typeof UpdateProductVariantSchema>): Promise<ProductVariant | null> {
-    // Validate input
-    const validatedData = UpdateProductVariantSchema.parse(variantData);
-    
     const fields = [];
     const values = [];
     let index = 1;
     
-    // Map camelCase to snake_case for database fields
-    const fieldMap: Record<string, string> = {
-      compareAtPrice: 'compare_at_price',
-      weightGram: 'weight_gram',
-      isActive: 'is_active'
-    };
-    
-    for (const [key, value] of Object.entries(validatedData)) {
+    for (const [key, value] of Object.entries(variantData)) {
       if (value !== undefined) {
-        const dbField = fieldMap[key] || key;
-        fields.push(`${dbField} = $${index}`);
+        fields.push(`${key} = ${index}`);
         values.push(value);
         index++;
       }
@@ -115,7 +101,7 @@ export class ProductVariantModel {
     }
     
     values.push(id);
-    const query = `UPDATE product_variants SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${index} RETURNING *`;
+    const query = `UPDATE product_variants SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ${index} RETURNING *`;
     const result: QueryResult = await pool.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
   }

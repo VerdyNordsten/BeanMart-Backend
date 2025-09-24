@@ -77,7 +77,18 @@ export class VariantImageController {
   async deleteVariantImage(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const deleted = await variantImageModel.delete(id);
+      
+      // Simple UUID validation
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Invalid image ID format. Expected UUID format.' 
+        });
+        return;
+      }
+      
+      const deleted = await variantImageModel.deleteWithFileCleanup(id);
       
       if (!deleted) {
         res.status(404).json({ success: false, message: 'Variant image not found' });
@@ -86,7 +97,48 @@ export class VariantImageController {
       
       res.status(200).json({ success: true, message: 'Variant image deleted successfully' });
     } catch (error) {
+      console.error('Error deleting variant image:', error);
       res.status(500).json({ success: false, message: 'Error deleting variant image', error });
+    }
+  }
+
+  // Smart delete variant image
+  async smartDeleteVariantImage(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      
+      // Simple UUID validation
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Invalid image ID format. Expected UUID format.' 
+        });
+        return;
+      }
+      
+      const result = await variantImageModel.smartDelete(id);
+      
+      if (!result.success) {
+        res.status(404).json({ 
+          success: false, 
+          message: result.message 
+        });
+        return;
+      }
+      
+      res.status(200).json({ 
+        success: true, 
+        message: result.message,
+        deletedFromStorage: result.deletedFromStorage
+      });
+    } catch (error) {
+      console.error('Error smart deleting variant image:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error deleting variant image', 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 }

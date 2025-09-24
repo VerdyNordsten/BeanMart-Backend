@@ -91,21 +91,38 @@ export const ProductCategorySchema = z.object({
 });
 
 
-// Product Variant schema
+// Product Variant schema with database field names
 export const ProductVariantSchema = z.object({
   id: z.uuidv4().optional(),
-  productId: z.uuidv4(),
+  product_id: z.string().uuid(),
   price: z.number(),
-  compareAtPrice: z.number().optional(),
+  compare_at_price: z.number().optional(),
   stock: z.number().int().default(0),
-  weightGram: z.number().int().optional(),
-  isActive: z.boolean().default(true),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  weight_gram: z.number().int().optional(),
+  is_active: z.boolean().default(true),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
 });
 
-export const CreateProductVariantSchema = ProductVariantSchema.omit({ id: true, createdAt: true, updatedAt: true });
-export const UpdateProductVariantSchema = ProductVariantSchema.partial().omit({ id: true, createdAt: true, updatedAt: true });
+// Create schema that accepts only database field names (snake_case)
+export const CreateProductVariantSchema = z.object({
+  product_id: z.string().uuid(),
+  price: z.number(),
+  compare_at_price: z.number().optional(),
+  stock: z.number().int().default(0),
+  weight_gram: z.number().int().optional(),
+  is_active: z.boolean().default(true),
+});
+
+// Update schema that accepts only database field names (snake_case)
+export const UpdateProductVariantSchema = z.object({
+  product_id: z.string().uuid().optional(),
+  price: z.number().optional(),
+  compare_at_price: z.number().optional(),
+  stock: z.number().int().optional(),
+  weight_gram: z.number().int().optional(),
+  is_active: z.boolean().optional(),
+}).partial();
 
 // Variant Image schema
 export const VariantImageSchema = z.object({

@@ -137,37 +137,37 @@ export class ProductModel {
     
     // Add fields to update only if they are defined in the validated data
     if (validatedData.slug !== undefined) {
-      fields.push(`slug = ${index}`);
+      fields.push(`slug = $${index}`);
       values.push(validatedData.slug);
       index++;
     }
     
     if (validatedData.name !== undefined) {
-      fields.push(`name = ${index}`);
+      fields.push(`name = $${index}`);
       values.push(validatedData.name);
       index++;
     }
     
     if (validatedData.short_description !== undefined) {
-      fields.push(`short_description = ${index}`);
+      fields.push(`short_description = $${index}`);
       values.push(validatedData.short_description);
       index++;
     }
     
     if (validatedData.long_description !== undefined) {
-      fields.push(`long_description = ${index}`);
+      fields.push(`long_description = $${index}`);
       values.push(validatedData.long_description);
       index++;
     }
     
     if (validatedData.currency !== undefined) {
-      fields.push(`currency = ${index}`);
+      fields.push(`currency = $${index}`);
       values.push(validatedData.currency);
       index++;
     }
     
     if (validatedData.is_active !== undefined) {
-      fields.push(`is_active = ${index}`);
+      fields.push(`is_active = $${index}`);
       values.push(validatedData.is_active);
       index++;
     }
@@ -177,7 +177,7 @@ export class ProductModel {
     }
     
     values.push(id);
-    const query = `UPDATE products SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ${index} RETURNING *`;
+    const query = `UPDATE products SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${index} RETURNING *`;
     const result: QueryResult = await pool.query(query, values);
     
     if (result.rows.length === 0) {

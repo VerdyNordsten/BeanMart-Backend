@@ -374,4 +374,99 @@ router.post('/upload-advanced-multiple',
   (req, res) => advancedFileUploadController.uploadMultipleFiles(req, res)
 );
 
+/**
+ * @swagger
+ * /variant-images/{id}:
+ *   delete:
+ *     summary: Delete a variant image (admin only)
+ *     tags: [Variant Images]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the variant image to delete
+ *     responses:
+ *       200:
+ *         description: Variant image deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Variant image deleted successfully"
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized - Missing or invalid token
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Variant image not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete('/:id', 
+  authenticateAdmin,
+  (req, res) => variantImageController.deleteVariantImage(req, res)
+);
+
+/**
+ * @swagger
+ * /variant-images/{id}/smart-delete:
+ *   delete:
+ *     summary: Smart delete a variant image (admin only)
+ *     tags: [Variant Images]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the variant image to delete
+ *     responses:
+ *       200:
+ *         description: Variant image deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Image deleted from database and storage"
+ *                 deletedFromStorage:
+ *                   type: boolean
+ *                   example: true
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized - Missing or invalid token
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Variant image not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete('/:id/smart-delete', 
+  authenticateAdmin,
+  (req, res) => variantImageController.smartDeleteVariantImage(req, res)
+);
+
 export default router;

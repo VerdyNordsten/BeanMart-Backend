@@ -34,19 +34,28 @@ export class AdvancedFileUploadController {
       let contentType: string;
 
       // Determine upload method based on request body
-      if (req.file) {
+      const uploadType = req.body.uploadType || (req.file ? 'file' : req.body.url ? 'url' : req.body.imageData ? 'paste' : 'unknown');
+      
+      if (req.file || uploadType === 'file') {
         // Local file upload
+        if (!req.file) {
+          res.status(400).json({ 
+            success: false, 
+            message: 'No file provided for file upload' 
+          });
+          return;
+        }
         fileBuffer = req.file.buffer;
         originalName = req.file.originalname;
         contentType = req.file.mimetype;
-      } else if (req.body.url) {
+      } else if (req.body.url || req.body.imageUrl || uploadType === 'url') {
         // URL upload
-        const url = req.body.url;
+        const url = req.body.url || req.body.imageUrl;
         
         // Validate URL
         try {
           new URL(url);
-        } catch (error) {
+        } catch {
           res.status(400).json({ 
             success: false, 
             message: 'Invalid URL provided' 
@@ -64,12 +73,12 @@ export class AdvancedFileUploadController {
           });
           
           // Determine content type from the response
-          const responseContentType = response.headers['content-type'] || 'application/octet-stream';
+          const responseContentType = response.headers['content-type'] ?? 'application/octet-stream';
           
           // Get file extension from URL if content type is generic
           if (responseContentType === 'application/octet-stream') {
             const urlPath = new URL(url).pathname;
-            const ext = urlPath.split('.').pop() || '';
+            const ext = urlPath.split('.').pop() ?? '';
             contentType = this.getContentTypeFromExtension(ext);
           } else {
             contentType = responseContentType;
@@ -77,7 +86,7 @@ export class AdvancedFileUploadController {
           
           fileBuffer = response.data;
           originalName = this.getFilenameFromUrl(url);
-        } catch (error) {
+        } catch (error: unknown) {
           res.status(400).json({ 
             success: false, 
             message: 'Failed to download file from URL',
@@ -85,7 +94,7 @@ export class AdvancedFileUploadController {
           });
           return;
         }
-      } else if (req.body.imageData) {
+      } else if (req.body.imageData || uploadType === 'paste') {
         // Base64 image data (for paste functionality)
         const imageData = req.body.imageData;
         
@@ -142,7 +151,7 @@ export class AdvancedFileUploadController {
       }
 
       // Parse and validate request body
-      const parsedPosition = parseInt(req.body.position, 10) || 1;
+      const parsedPosition = parseInt(req.body.position, 10) ?? 1;
       
       const { variantId, position } = AdvancedFileUploadSchema.parse({
         variantId: req.body.variantId,
@@ -205,7 +214,7 @@ export class AdvancedFileUploadController {
       }
 
       const uploadedVariantImages = [];
-      let filesToProcess: Array<{
+      const filesToProcess: Array<{
         buffer: Buffer,
         originalName: string,
         contentType: string
@@ -233,12 +242,12 @@ export class AdvancedFileUploadController {
               }
             });
             
-            const responseContentType = response.headers['content-type'] || 'application/octet-stream';
+            const responseContentType = response.headers['content-type'] ?? 'application/octet-stream';
             let contentType: string;
             
             if (responseContentType === 'application/octet-stream') {
               const urlPath = new URL(url).pathname;
-              const ext = urlPath.split('.').pop() || '';
+              const ext = urlPath.split('.').pop() ?? '';
               contentType = this.getContentTypeFromExtension(ext);
             } else {
               contentType = responseContentType;
@@ -249,7 +258,7 @@ export class AdvancedFileUploadController {
               originalName: this.getFilenameFromUrl(url),
               contentType
             });
-          } catch (error) {
+          } catch (error: unknown) {
             console.error(`Failed to download file from URL: ${url}`, error);
             continue; // Skip this file and continue with others
           }
@@ -296,7 +305,7 @@ export class AdvancedFileUploadController {
       }
 
       // Parse and validate request body
-      const parsedPosition = parseInt(req.body.position, 10) || 1;
+      const parsedPosition = parseInt(req.body.position, 10) ?? 1;
       
       const { variantId } = AdvancedFileUploadSchema.parse({
         variantId: req.body.variantId,
@@ -330,7 +339,7 @@ export class AdvancedFileUploadController {
 
         // Calculate position for this file
         const filePosition = req.body.positions && Array.isArray(req.body.positions)
-          ? (parseInt(req.body.positions[i], 10) || i + 1)
+          ? (parseInt(req.body.positions[i], 10) ?? i + 1)
           : parsedPosition + i;
 
         // Upload file to storage
@@ -389,7 +398,7 @@ export class AdvancedFileUploadController {
       'tiff': 'image/tiff'
     };
     
-    return extensionMap[ext.toLowerCase()] || 'application/octet-stream';
+    return extensionMap[ext.toLowerCase()] ?? 'application/octet-stream';
   }
 
   /**
@@ -399,9 +408,9 @@ export class AdvancedFileUploadController {
     try {
       const urlObj = new URL(url);
       const pathname = urlObj.pathname;
-      const filename = pathname.split('/').pop() || 'downloaded-file';
-      return filename || 'downloaded-file';
-    } catch (error) {
+      const filename = pathname.split('/').pop() ?? 'downloaded-file';
+      return filename ?? 'downloaded-file';
+    } catch {
       return 'downloaded-file';
     }
   }

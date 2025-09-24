@@ -48,8 +48,10 @@ export class ProductVariantController {
   // Create a new product variant
   async createProductVariant(req: Request, res: Response): Promise<void> {
     try {
+      // Transform camelCase keys to snake_case to match database schema
+      const transformedBody = this.transformCamelToSnake(req.body);
       // Validate input
-      const variantData = CreateProductVariantSchema.parse(req.body);
+      const variantData = CreateProductVariantSchema.parse(transformedBody);
       const newVariant = await productVariantModel.create(variantData);
       res.status(201).json({ success: true, data: newVariant });
     } catch (error) {
@@ -65,8 +67,10 @@ export class ProductVariantController {
   async updateProductVariant(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      // Transform camelCase keys to snake_case to match database schema
+      const transformedBody = this.transformCamelToSnake(req.body);
       // Validate input
-      const variantData = UpdateProductVariantSchema.parse(req.body);
+      const variantData = UpdateProductVariantSchema.parse(transformedBody);
       const updatedVariant = await productVariantModel.update(id, variantData);
       
       if (!updatedVariant) {
@@ -99,5 +103,46 @@ export class ProductVariantController {
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error deleting product variant', error });
     }
+  }
+  
+  // Helper method to transform camelCase keys to snake_case
+  private transformCamelToSnake(obj: any): any {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.transformCamelToSnake(item));
+    }
+    
+    const transformed: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Convert known camelCase field names to snake_case
+      let newKey = key;
+      switch (key) {
+        case 'productId':
+          newKey = 'product_id';
+          break;
+        case 'compareAtPrice':
+          newKey = 'compare_at_price';
+          break;
+        case 'weightGram':
+          newKey = 'weight_gram';
+          break;
+        case 'isActive':
+          newKey = 'is_active';
+          break;
+        default:
+          // Convert any other camelCase to snake_case
+          newKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+          // Remove leading underscore if the original key started with uppercase
+          if (newKey.startsWith('_')) {
+            newKey = newKey.substring(1);
+          }
+      }
+      transformed[newKey] = this.transformCamelToSnake(value);
+    }
+    
+    return transformed;
   }
 }
