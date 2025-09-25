@@ -37,7 +37,7 @@ export class VariantImageController {
   // Create a new variant image
   async createVariantImage(req: Request, res: Response): Promise<void> {
     try {
-      // Validate input
+      // Validate input directly (expecting snake_case from frontend)
       const imageData = CreateVariantImageSchema.parse(req.body);
       const newImage = await variantImageModel.create(imageData);
       res.status(201).json({ success: true, data: newImage });
@@ -54,7 +54,7 @@ export class VariantImageController {
   async updateVariantImage(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      // Validate input
+      // Validate input directly (expecting snake_case from frontend)
       const imageData = UpdateVariantImageSchema.parse(req.body);
       const updatedImage = await variantImageModel.update(id, imageData);
       
@@ -141,4 +141,5 @@ export class VariantImageController {
       });
     }
   }
+
 }

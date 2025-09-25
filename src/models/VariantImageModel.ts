@@ -10,6 +10,8 @@ export class VariantImageModel {
   async findByVariantId(variant_id: string): Promise<VariantImage[]> {
     const query = 'SELECT * FROM variant_images WHERE variant_id = $1 ORDER BY position ASC';
     const result: QueryResult = await pool.query(query, [variant_id]);
+    
+    // Return data as-is from database (snake_case)
     return result.rows;
   }
 
@@ -17,7 +19,13 @@ export class VariantImageModel {
   async findById(id: string): Promise<VariantImage | null> {
     const query = 'SELECT * FROM variant_images WHERE id = $1';
     const result: QueryResult = await pool.query(query, [id]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    // Return data as-is from database (snake_case)
+    return result.rows[0];
   }
 
   // Create a new variant image
@@ -26,9 +34,11 @@ export class VariantImageModel {
     const validatedData = CreateVariantImageSchema.parse(imageData);
     
     const query = `INSERT INTO variant_images (variant_id, url, position) VALUES ($1, $2, $3) RETURNING *`;
-    const values = [validatedData.variantId, validatedData.url, validatedData.position];
+    const values = [validatedData.variant_id, validatedData.url, validatedData.position];
     
     const result: QueryResult = await pool.query(query, values);
+    
+    // Return data as-is from database (snake_case)
     return result.rows[0];
   }
 
@@ -43,7 +53,7 @@ export class VariantImageModel {
     
     for (const [key, value] of Object.entries(validatedData)) {
       if (value !== undefined) {
-        fields.push(`${key} = ${index}`);
+        fields.push(`${key} = $${index}`);
         values.push(value);
         index++;
       }
@@ -56,7 +66,13 @@ export class VariantImageModel {
     values.push(id);
     const query = `UPDATE variant_images SET ${fields.join(', ')} WHERE id = $${index} RETURNING *`;
     const result: QueryResult = await pool.query(query, values);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    // Return data as-is from database (snake_case)
+    return result.rows[0];
   }
 
   // Delete a variant image

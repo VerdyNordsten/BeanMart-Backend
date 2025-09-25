@@ -7,7 +7,7 @@ import type { AdminAuthRequest } from '../middleware/adminAuth';
 
 // Schema for advanced file upload
 const AdvancedFileUploadSchema = z.object({
-  variantId: z.string().uuid(),
+  variant_id: z.string().uuid(),
   position: z.number().int().default(1),
 });
 
@@ -153,8 +153,8 @@ export class AdvancedFileUploadController {
       // Parse and validate request body
       const parsedPosition = parseInt(req.body.position, 10) ?? 1;
       
-      const { variantId, position } = AdvancedFileUploadSchema.parse({
-        variantId: req.body.variantId,
+      const { variant_id, position } = AdvancedFileUploadSchema.parse({
+        variant_id: req.body.variant_id,
         position: parsedPosition,
       });
 
@@ -169,7 +169,7 @@ export class AdvancedFileUploadController {
       // Save image reference to database using VariantImageModel
       const variantImageModel = new VariantImageModel();
       const variantImage = await variantImageModel.create({
-        variantId,
+        variant_id: variant_id,
         url: uploadResult.url,
         position,
       });
@@ -307,8 +307,8 @@ export class AdvancedFileUploadController {
       // Parse and validate request body
       const parsedPosition = parseInt(req.body.position, 10) ?? 1;
       
-      const { variantId } = AdvancedFileUploadSchema.parse({
-        variantId: req.body.variantId,
+      const { variant_id } = AdvancedFileUploadSchema.parse({
+        variant_id: req.body.variant_id,
         position: parsedPosition,
       });
 
@@ -352,7 +352,7 @@ export class AdvancedFileUploadController {
 
         // Save image reference to database
         const variantImage = await variantImageModel.create({
-          variantId,
+          variant_id: variant_id,
           url: uploadResult.url,
           position: filePosition,
         });

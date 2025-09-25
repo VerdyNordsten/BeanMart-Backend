@@ -10,18 +10,8 @@ export class ProductModel {
     const query = 'SELECT * FROM products ORDER BY created_at DESC';
     const result: QueryResult = await pool.query(query);
     
-    // Map database snake_case fields to camelCase for consistent API response
-    return result.rows.map(product => ({
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      short_description: product.short_description,
-      long_description: product.long_description,
-      currency: product.currency,
-      is_active: product.is_active,
-      createdAt: product.created_at,
-      updatedAt: product.updated_at
-    }));
+    // Return data as-is from database (snake_case)
+    return result.rows;
   }
 
   // Find product by ID
@@ -33,19 +23,8 @@ export class ProductModel {
       return null;
     }
     
-    // Map database snake_case fields to camelCase for consistent API response
-    const product = result.rows[0];
-    return {
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      short_description: product.short_description,
-      long_description: product.long_description,
-      currency: product.currency,
-      is_active: product.is_active,
-      createdAt: product.created_at,
-      updatedAt: product.updated_at
-    };
+    // Return data as-is from database (snake_case)
+    return result.rows[0];
   }
 
   // Find products by slug
@@ -57,19 +36,8 @@ export class ProductModel {
       return null;
     }
     
-    // Map database snake_case fields to camelCase for consistent API response
-    const product = result.rows[0];
-    return {
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      short_description: product.short_description,
-      long_description: product.long_description,
-      currency: product.currency,
-      is_active: product.is_active,
-      createdAt: product.created_at,
-      updatedAt: product.updated_at
-    };
+    // Return data as-is from database (snake_case)
+    return result.rows[0];
   }
 
   // Find active products
@@ -77,18 +45,8 @@ export class ProductModel {
     const query = 'SELECT * FROM products WHERE is_active = true ORDER BY created_at DESC';
     const result: QueryResult = await pool.query(query);
     
-    // Map database snake_case fields to camelCase for consistent API response
-    return result.rows.map(product => ({
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      short_description: product.short_description,
-      long_description: product.long_description,
-      currency: product.currency,
-      is_active: product.is_active,
-      createdAt: product.created_at,
-      updatedAt: product.updated_at
-    }));
+    // Return data as-is from database (snake_case)
+    return result.rows;
   }
 
   // Create a new product
@@ -111,19 +69,8 @@ export class ProductModel {
     
     const result: QueryResult = await pool.query(query, values);
     
-    // Map database snake_case fields to camelCase for consistent API response
-    const product = result.rows[0];
-    return {
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      short_description: product.short_description,
-      long_description: product.long_description,
-      currency: product.currency,
-      is_active: product.is_active,
-      createdAt: product.created_at,
-      updatedAt: product.updated_at
-    };
+    // Return data as-is from database (snake_case)
+    return result.rows[0];
   }
 
   // Update a product
@@ -184,19 +131,8 @@ export class ProductModel {
       return null;
     }
     
-    // Map database snake_case fields to camelCase for consistent API response
-    const product = result.rows[0];
-    return {
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      short_description: product.short_description,
-      long_description: product.long_description,
-      currency: product.currency,
-      is_active: product.is_active,
-      createdAt: product.created_at,
-      updatedAt: product.updated_at
-    };
+    // Return data as-is from database (snake_case)
+    return result.rows[0];
   }
 
   // Delete a product

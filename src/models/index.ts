@@ -41,8 +41,8 @@ export interface Product {
   long_description?: string;
   currency: string; // 3-letter currency code (e.g. USD, IDR)
   is_active: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 // Product Category relation
@@ -72,6 +72,8 @@ export interface VariantImage {
   variant_id: string;
   url: string;
   position: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // Order entity

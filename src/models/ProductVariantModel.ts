@@ -90,7 +90,7 @@ export class ProductVariantModel {
     
     for (const [key, value] of Object.entries(variantData)) {
       if (value !== undefined) {
-        fields.push(`${key} = ${index}`);
+        fields.push(`${key} = $${index}`);
         values.push(value);
         index++;
       }
@@ -101,7 +101,7 @@ export class ProductVariantModel {
     }
     
     values.push(id);
-    const query = `UPDATE product_variants SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ${index} RETURNING *`;
+    const query = `UPDATE product_variants SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${index} RETURNING *`;
     const result: QueryResult = await pool.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
   }

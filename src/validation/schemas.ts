@@ -127,7 +127,7 @@ export const UpdateProductVariantSchema = z.object({
 // Variant Image schema
 export const VariantImageSchema = z.object({
   id: z.uuidv4().optional(),
-  variantId: z.uuidv4(),
+  variant_id: z.uuidv4(),
   url: z.url(),
   position: z.number().int().default(1),
 });
