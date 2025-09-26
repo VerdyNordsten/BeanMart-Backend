@@ -28,6 +28,7 @@ const s3Client = new S3Client({
     secretAccessKey: process.env.STORAGE_SECRET_KEY!,
   },
   forcePathStyle: true, // Needed for MinIO and most S3-compatible services
+  maxAttempts: 3, // Retry failed requests up to 3 times
 });
 
 export interface UploadResult {
@@ -47,38 +48,70 @@ export const uploadFile = async (
   fileName: string,
   contentType: string
 ): Promise<UploadResult> => {
-  try {
-    // Validate required environment variables
-    if (!process.env.STORAGE_BUCKET_NAME) {
-      throw new Error('STORAGE_BUCKET_NAME environment variable is not set');
+  const maxRetries = 3;
+  const timeoutMs = 120000; // 2 minutes timeout
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Validate required environment variables
+      if (!process.env.STORAGE_BUCKET_NAME) {
+        throw new Error('STORAGE_BUCKET_NAME environment variable is not set');
+      }
+      
+      if (!process.env.STORAGE_PUBLIC_ENDPOINT) {
+        throw new Error('STORAGE_PUBLIC_ENDPOINT environment variable is not set');
+      }
+
+      // Generate a unique key for the file using UUIDv4
+      const uniqueFilename = generateUniqueFilename(fileName);
+      const key = `product-images/${uniqueFilename}`;
+
+      const command = new PutObjectCommand({
+        Bucket: process.env.STORAGE_BUCKET_NAME,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: contentType,
+        ACL: 'public-read',
+      });
+
+      // Create timeout promise to prevent hanging on slow connections
+      const uploadPromise = s3Client.send(command);
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(`Upload timeout after ${timeoutMs}ms`)), timeoutMs);
+      });
+
+      await Promise.race([uploadPromise, timeoutPromise]);
+
+      // Generate the public URL using the public endpoint
+      const url = `${process.env.STORAGE_ENDPOINT}/${process.env.STORAGE_BUCKET_NAME}/${key}`;
+
+      console.log(`Successfully uploaded file after attempt ${attempt}`);
+      return { url, key };
+    } catch (error: unknown) {
+      const isLastAttempt = attempt === maxRetries;
+      
+      if (isLastAttempt) {
+        console.error('Error uploading file after all retries:', error);
+        throw new Error(`Failed to upload file after ${maxRetries} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      
+      // For retry, add exponential delay
+      if (error instanceof Error && 
+          (error.message.includes('timeout') || 
+           error.message.includes('ETIMEDOUT') || 
+           error.message.includes('ENOTFOUND'))) {
+        const delayMs = Math.pow(2, attempt) * 1000; // Exponential backoff: 2s, 4s, 8s
+        console.log(`Retrying upload after attempt ${attempt}. Waiting ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      } else {
+        // For non-timeout errors, fail immediately
+        throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }
-    
-    if (!process.env.STORAGE_PUBLIC_ENDPOINT) {
-      throw new Error('STORAGE_PUBLIC_ENDPOINT environment variable is not set');
-    }
-
-    // Generate a unique key for the file using UUIDv4
-    const uniqueFilename = generateUniqueFilename(fileName);
-    const key = `product-images/${uniqueFilename}`;
-
-    const command = new PutObjectCommand({
-      Bucket: process.env.STORAGE_BUCKET_NAME,
-      Key: key,
-      Body: fileBuffer,
-      ContentType: contentType,
-      ACL: 'public-read',
-    });
-
-    await s3Client.send(command);
-
-    // Generate the public URL using the public endpoint
-    const url = `${process.env.STORAGE_ENDPOINT}/${process.env.STORAGE_BUCKET_NAME}/${key}`;
-
-    return { url, key };
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+  
+  // This shouldn't reach here but just in case
+  throw new Error('Unexpected error in upload retry loop');
 };
 
 /**

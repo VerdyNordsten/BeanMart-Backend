@@ -1,9 +1,50 @@
 import type { Response } from 'express';
 import { uploadFile, generateUniqueFilename } from '../services/storageService';
+import { processImage } from '../services/imageProcessingService';
 import { VariantImageModel } from '../models/VariantImageModel';
 import { z } from 'zod';
 import axios from 'axios';
 import type { AdminAuthRequest } from '../middleware/adminAuth';
+
+// Configure axios defaults for better timeout handling
+const axiosInstance = axios.create({
+  timeout: 60000, // 60 seconds timeout
+  maxContentLength: 50 * 1024 * 1024, // Max 50MB files
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (compatible; Beanmart API)',
+    'Accept': 'image/*', // Accept all image types
+    'Cache-Control': 'no-cache' // Don't cache during download
+  }
+});
+
+// Helper function to download file with retry logic
+const downloadImageWithRetry = async (url: string, maxRetries: number = 3): Promise<any> => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Attempting to download ${url} (attempt ${attempt}/${maxRetries})`);
+      const response = await axiosInstance.get(url, { 
+        responseType: 'arraybuffer'
+      });
+      console.log(`Successfully downloaded ${url}`);
+      return response;
+    } catch (error: unknown) {
+      const isLastAttempt = attempt === maxRetries;
+      
+      if (isLastAttempt) {
+        throw error; // Re-throw on final attempt
+      }
+      
+      // For retry, add slight delay
+      if (error instanceof Error && 
+          (error.message.includes('timeout') || error.message.includes('ECONNABORTED'))) {
+        console.log(`Timeout on attempt ${attempt}, retrying in 2 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        throw error; // For other errors, don't retry
+      }
+    }
+  }
+};
 
 // Schema for advanced file upload
 const AdvancedFileUploadSchema = z.object({
@@ -29,9 +70,9 @@ export class AdvancedFileUploadController {
       }
 
       // Get the upload method from request
-      let fileBuffer: Buffer;
-      let originalName: string;
-      let contentType: string;
+      let fileBuffer: Buffer | undefined;
+      let originalName: string | undefined;
+      let contentType: string | undefined;
 
       // Determine upload method based on request body
       const uploadType = req.body.uploadType || (req.file ? 'file' : req.body.url ? 'url' : req.body.imageData ? 'paste' : 'unknown');
@@ -65,12 +106,7 @@ export class AdvancedFileUploadController {
 
         // Download file from URL
         try {
-          const response = await axios.get(url, { 
-            responseType: 'arraybuffer',
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; Beanmart API)'
-            }
-          });
+          const response = await downloadImageWithRetry(url);
           
           // Determine content type from the response
           const responseContentType = response.headers['content-type'] ?? 'application/octet-stream';
@@ -87,9 +123,25 @@ export class AdvancedFileUploadController {
           fileBuffer = response.data;
           originalName = this.getFilenameFromUrl(url);
         } catch (error: unknown) {
+          console.error('Error downloading file from URL:', error);
+          
+          let errorMessage = 'Failed to download file from URL';
+          if (error instanceof Error) {
+            const errorWithCode = error as any;
+            if (errorWithCode.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+              errorMessage = 'Download timeout - Image took too long to download. Please try a different image or check your internet connection.';
+            } else if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+              errorMessage = 'Failed to connect to image server. Please check the URL.';
+            } else if (error.message.includes('ENOENT') || error.message.includes('404')) {
+              errorMessage = 'Image not found at the provided URL.';
+            } else {
+              errorMessage = `Download error: ${error.message}`;
+            }
+          }
+          
           res.status(400).json({ 
             success: false, 
-            message: 'Failed to download file from URL',
+            message: errorMessage,
             error: error instanceof Error ? error.message : 'Unknown error'
           });
           return;
@@ -132,6 +184,15 @@ export class AdvancedFileUploadController {
         return;
       }
 
+      // Check that all required variables are properly set
+      if (!fileBuffer || !originalName || !contentType) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Unable to determine file content or metadata from upload' 
+        });
+        return;
+      }
+
       // Validate file type is an image
       if (!contentType.startsWith('image/')) {
         res.status(400).json({ 
@@ -141,11 +202,11 @@ export class AdvancedFileUploadController {
         return;
       }
 
-      // Validate file size (max 5MB)
-      if (fileBuffer.length > 5 * 1024 * 1024) {
+      // Validate file size (max 50MB)
+      if (fileBuffer.length > 50 * 1024 * 1024) {
         res.status(400).json({ 
           success: false, 
-          message: 'File size exceeds 5MB limit' 
+          message: 'File size exceeds 50MB limit' 
         });
         return;
       }
@@ -158,10 +219,38 @@ export class AdvancedFileUploadController {
         position: parsedPosition,
       });
 
+      // Process/resize image to maximum 700x700 if needed
+      let processedBuffer = fileBuffer;
+      try {
+        const processedImage = await processImage(fileBuffer, {
+          maxWidth: 700,
+          maxHeight: 700,
+          quality: 90
+        });
+        
+        processedBuffer = processedImage.buffer;
+        
+        // Log image processing results
+        if (processedImage.wasResized) {
+          console.log(`Image resized from ${processedImage.originalWidth}x${processedImage.originalHeight} to ${processedImage.width}x${processedImage.height}`);
+        } else {
+          console.log(`Image size ${processedImage.width}x${processedImage.height} is within limits, keeping original`);
+        }
+        
+        // Update content type to JPEG since resized images are converted to JPEG for consistency
+        if (processedImage.wasResized && processedImage.width <= 700 && processedImage.height <= 700) {
+          contentType = 'image/jpeg';
+        }
+      } catch (processingError) {
+        console.error('Error processing image during resize:', processingError);
+        // Continue with original if processing fails
+        console.log('Continuing with original image due to processing error');
+      }
+
       // Upload file to storage
       const fileName = generateUniqueFilename(originalName);
       const uploadResult = await uploadFile(
-        fileBuffer,
+        processedBuffer,
         fileName,
         contentType
       );
@@ -235,12 +324,7 @@ export class AdvancedFileUploadController {
       if (req.body.urls && Array.isArray(req.body.urls)) {
         for (const url of req.body.urls) {
           try {
-            const response = await axios.get(url, { 
-              responseType: 'arraybuffer',
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (compatible; Beanmart API)'
-              }
-            });
+            const response = await downloadImageWithRetry(url);
             
             const responseContentType = response.headers['content-type'] ?? 'application/octet-stream';
             let contentType: string;
@@ -260,6 +344,18 @@ export class AdvancedFileUploadController {
             });
           } catch (error: unknown) {
             console.error(`Failed to download file from URL: ${url}`, error);
+            
+            // Provide more specific error messages in logs
+            if (error instanceof Error) {
+              const errorWithCode = error as any;
+              if (errorWithCode.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+                console.error(`Timeout downloading ${url}: Image took too long to download`);
+              } else if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+                console.error(`Connection error for ${url}: Failed to connect to image server`);
+              } else if (error.message.includes('ENOENT') || error.message.includes('404')) {
+                console.error(`Not found error for ${url}: Image not found at URL`);
+              }
+            }
             continue; // Skip this file and continue with others
           }
         }
@@ -328,11 +424,11 @@ export class AdvancedFileUploadController {
           return;
         }
 
-        // Validate file size (max 5MB)
-        if (file.buffer.length > 5 * 1024 * 1024) {
+        // Validate file size (max 50MB)
+        if (file.buffer.length > 50 * 1024 * 1024) {
           res.status(400).json({ 
             success: false, 
-            message: `File at position ${i + 1} exceeds 5MB limit` 
+            message: `File at position ${i + 1} exceeds 50MB limit` 
           });
           return;
         }
@@ -342,12 +438,42 @@ export class AdvancedFileUploadController {
           ? (parseInt(req.body.positions[i], 10) ?? i + 1)
           : parsedPosition + i;
 
+        // Process/resize image to maximum 700x700 if needed
+        let processedBuffer = file.buffer;
+        let processedContentType = file.contentType;
+        
+        try {
+          const processedImage = await processImage(file.buffer, {
+            maxWidth: 700,
+            maxHeight: 700,
+            quality: 90
+          });
+          
+          processedBuffer = processedImage.buffer;
+          
+          // Log image processing results
+          if (processedImage.wasResized) {
+            console.log(`File ${i + 1}: Resized from ${processedImage.originalWidth}x${processedImage.originalHeight} to ${processedImage.width}x${processedImage.height}`);
+          } else {
+            console.log(`File ${i + 1}: Size ${processedImage.width}x${processedImage.height} is within limits, keeping original`);
+          }
+          
+          // Update content type to JPEG since resized images are converted to JPEG for consistency
+          if (processedImage.wasResized && processedImage.width <= 700 && processedImage.height <= 700) {
+            processedContentType = 'image/jpeg';
+          }
+        } catch (processingError) {
+          console.error(`Error processing file ${i + 1} during resize:`, processingError);
+          // Continue with original if processing fails
+          console.log(`Continuing with original file ${i + 1} due to processing error`);
+        }
+
         // Upload file to storage
         const fileName = generateUniqueFilename(file.originalName);
         const uploadResult = await uploadFile(
-          file.buffer,
+          processedBuffer,
           fileName,
-          file.contentType
+          processedContentType
         );
 
         // Save image reference to database
