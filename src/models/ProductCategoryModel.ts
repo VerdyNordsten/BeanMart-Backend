@@ -28,8 +28,18 @@ export class ProductCategoryModel {
   }
 
   // Get categories for product
-  async getCategoriesForProduct(product_id: string): Promise<ProductCategory[]> {
-    const query = `SELECT * FROM product_categories WHERE product_id = $1`;
+  async getCategoriesForProduct(product_id: string): Promise<any[]> {
+    const query = `
+      SELECT 
+        pc.*,
+        c.id as category_id,
+        c.slug as category_slug,
+        c.name as category_name
+      FROM product_categories pc
+      JOIN categories c ON pc.category_id = c.id
+      WHERE pc.product_id = $1
+      ORDER BY c.name
+    `;
     const result: QueryResult = await pool.query(query, [product_id]);
     return result.rows;
   }
@@ -39,5 +49,12 @@ export class ProductCategoryModel {
     const query = `SELECT * FROM product_categories WHERE category_id = $1`;
     const result: QueryResult = await pool.query(query, [category_id]);
     return result.rows;
+  }
+
+  // Remove all categories from product
+  async removeAllCategoriesFromProduct(product_id: string): Promise<boolean> {
+    const query = `DELETE FROM product_categories WHERE product_id = $1`;
+    const result: QueryResult = await pool.query(query, [product_id]);
+    return result.rowCount !== null && result.rowCount >= 0;
   }
 }

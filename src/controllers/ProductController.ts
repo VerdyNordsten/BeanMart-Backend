@@ -1,12 +1,16 @@
 import type { Request, Response } from 'express';
 import { ProductModel } from '../models/ProductModel';
 import { ProductVariantModel } from '../models/ProductVariantModel';
+import { ProductCategoryModel } from '../models/ProductCategoryModel';
+import { ProductRoastLevelModel } from '../models/ProductRoastLevelModel';
 import { CreateProductSchema, UpdateProductSchema } from '../validation/schemas';
 import type { VariantImage } from '../models/index';
 import { z } from 'zod';
 
 const productModel = new ProductModel();
 const productVariantModel = new ProductVariantModel();
+const productCategoryModel = new ProductCategoryModel();
+const productRoastLevelModel = new ProductRoastLevelModel();
 
 export class ProductController {
   // Get all products with variants and images
@@ -14,13 +18,17 @@ export class ProductController {
     try {
       const products = await productModel.findAll();
       
-      // Get variants and images for each product
+      // Get variants, images, categories, and roast levels for each product
       const productsWithDetails = await Promise.all(
         products.map(async (product) => {
           const variants = await productVariantModel.findByProductId(product.id);
+          const categories = await productCategoryModel.getCategoriesForProduct(product.id);
+          const roastLevels = await productRoastLevelModel.getRoastLevelsForProduct(product.id);
           return {
             ...product,
             variants,
+            categories,
+            roastLevels,
             images: variants.flatMap(variant => 
               variant.images ? variant.images.map((img: VariantImage) => ({
                 id: img.id,
@@ -44,13 +52,17 @@ export class ProductController {
     try {
       const products = await productModel.findActive();
       
-      // Get variants and images for each product
+      // Get variants, images, categories, and roast levels for each product
       const productsWithDetails = await Promise.all(
         products.map(async (product) => {
           const variants = await productVariantModel.findActiveByProductId(product.id);
+          const categories = await productCategoryModel.getCategoriesForProduct(product.id);
+          const roastLevels = await productRoastLevelModel.getRoastLevelsForProduct(product.id);
           return {
             ...product,
             variants,
+            categories,
+            roastLevels,
             images: variants.flatMap(variant => 
               variant.images ? variant.images.map((img: VariantImage) => ({
                 id: img.id,
@@ -81,9 +93,13 @@ export class ProductController {
       }
       
       const variants = await productVariantModel.findByProductId(product.id);
+      const categories = await productCategoryModel.getCategoriesForProduct(product.id);
+      const roastLevels = await productRoastLevelModel.getRoastLevelsForProduct(product.id);
       const productWithDetails = {
         ...product,
         variants,
+        categories,
+        roastLevels,
         images: variants.flatMap(variant => 
           variant.images ? variant.images.map((img: VariantImage) => ({
             id: img.id,
@@ -112,9 +128,13 @@ export class ProductController {
       }
       
       const variants = await productVariantModel.findByProductId(product.id);
+      const categories = await productCategoryModel.getCategoriesForProduct(product.id);
+      const roastLevels = await productRoastLevelModel.getRoastLevelsForProduct(product.id);
       const productWithDetails = {
         ...product,
         variants,
+        categories,
+        roastLevels,
         images: variants.flatMap(variant => 
           variant.images ? variant.images.map((img: VariantImage) => ({
             id: img.id,

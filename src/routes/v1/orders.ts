@@ -67,7 +67,7 @@ const orderController = new OrderController();
  *         order_number: ORD-1234567890-123
  *         status: pending
  *         total_amount: 250000
- *         currency: IDR
+ *         currency: USD
  *         shipping_address: { "name": "John Doe", "address": "123 Main St", "city": "Jakarta" }
  *         billing_address: { "name": "John Doe", "address": "123 Main St", "city": "Jakarta" }
  *         notes: Please deliver after 5 PM
@@ -384,5 +384,85 @@ router.delete('/:id', authenticateToken, (req: AuthRequest, res) => {
     res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
   }
 });
+
+/**
+ * @swagger
+ * /orders/{id}/status:
+ *   put:
+ *     summary: Update order status (admin only)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Order ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, confirmed, shipped, delivered, cancelled]
+ *     responses:
+ *       200:
+ *         description: Order status updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put('/:id/status', authenticateToken, (req: AuthRequest, res) => {
+  if (req.isAdmin) {
+    void orderController.updateOrderStatus(req, res);
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden - Admin access required' });
+  }
+});
+
+/**
+ * @swagger
+ * /orders/{id}/cancel:
+ *   put:
+ *     summary: Cancel an order
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Order cancelled successfully
+ *       400:
+ *         description: Order cannot be cancelled at this stage
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put('/:id/cancel', authenticateToken, orderController.cancelOrder);
 
 export default router;

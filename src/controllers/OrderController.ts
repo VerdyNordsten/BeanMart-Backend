@@ -15,8 +15,31 @@ export class OrderController {
   async getAllOrders(req: Request, res: Response): Promise<void> {
     try {
       const orders = await orderModel.findAll();
-      res.status(200).json({ success: true, data: orders });
+      
+      // Get order items for each order
+      const ordersWithItems = await Promise.all(
+        orders.map(async (order) => {
+          const orderItems = await orderItemModel.findByOrderIdWithDetails(order.id);
+          return {
+            ...order,
+            items: orderItems
+          };
+        })
+      );
+      res.status(200).json({ 
+        success: true, 
+        data: {
+          orders: ordersWithItems,
+          pagination: {
+            page: 1,
+            limit: 10,
+            total: ordersWithItems.length,
+            total_pages: 1
+          }
+        }
+      });
     } catch (error) {
+      console.error('Error fetching orders:', error);
       res.status(500).json({ success: false, message: 'Error fetching orders', error });
     }
   }
@@ -30,8 +53,20 @@ export class OrderController {
         return;
       }
       const orders = await orderModel.findByUserId(userId);
-      res.status(200).json({ success: true, data: orders });
+      
+      // Get order items for each order
+      const ordersWithItems = await Promise.all(
+        orders.map(async (order) => {
+          const orderItems = await orderItemModel.findByOrderIdWithDetails(order.id);
+          return {
+            ...order,
+            items: orderItems
+          };
+        })
+      );
+      res.status(200).json({ success: true, data: ordersWithItems });
     } catch (error) {
+      console.error('Error fetching user orders:', error);
       res.status(500).json({ success: false, message: 'Error fetching orders', error });
     }
   }
@@ -47,8 +82,8 @@ export class OrderController {
         return;
       }
       
-      // Get order items
-      const orderItems = await orderItemModel.findByOrderId(id);
+      // Get order items with product details
+      const orderItems = await orderItemModel.findByOrderIdWithDetails(id);
       
       res.status(200).json({ success: true, data: { ...order, items: orderItems } });
     } catch (error) {
@@ -101,16 +136,19 @@ export class OrderController {
       orderData.totalAmount = totalAmount;
       
       // Create order
-      const newOrder = await orderModel.create({
+      const orderCreateData = {
         userId: orderData.userId,
         orderNumber: orderData.orderNumber!,
         status: orderData.status,
         totalAmount: orderData.totalAmount!,
+        shippingCost: orderData.shippingCost || 0,
         currency: orderData.currency,
         shippingAddress: orderData.shippingAddress,
         billingAddress: orderData.billingAddress,
         notes: orderData.notes
-      });
+      };
+      
+      const newOrder = await orderModel.create(orderCreateData as any);
       
       // Create order items
       const orderItems = [];
@@ -129,10 +167,15 @@ export class OrderController {
       
       res.status(201).json({ success: true, data: { ...newOrder, items: orderItems } });
     } catch (error) {
+      console.error('Order creation error:', error);
+      
       if (error instanceof z.ZodError) {
+        console.error('Zod validation errors:', error.issues);
         res.status(400).json({ success: false, message: 'Validation error', errors: error.issues });
       } else {
-        res.status(500).json({ success: false, message: 'Error creating order', error });
+        console.error('General error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        res.status(500).json({ success: false, message: 'Error creating order', error: errorMessage });
       }
     }
   }
@@ -175,6 +218,64 @@ export class OrderController {
       res.status(200).json({ success: true, message: 'Order deleted successfully' });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Error deleting order', error });
+    }
+  }
+
+  // Update order status (admin only)
+  async updateOrderStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!status) {
+        res.status(400).json({ success: false, message: 'Status is required' });
+        return;
+      }
+      
+      const updateData = { status };
+      const updatedOrder = await orderModel.update(id, updateData);
+      
+      if (!updatedOrder) {
+        res.status(404).json({ success: false, message: 'Order not found' });
+        return;
+      }
+      
+      res.status(200).json({ success: true, data: updatedOrder });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Error updating order status', error });
+    }
+  }
+
+  // Cancel order
+  async cancelOrder(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      
+      const order = await orderModel.findById(id);
+      
+      if (!order) {
+        res.status(404).json({ success: false, message: 'Order not found' });
+        return;
+      }
+      
+      // Check if user owns the order or is admin
+      if (order.user_id !== userId && !req.isAdmin) {
+        res.status(403).json({ success: false, message: 'Forbidden' });
+        return;
+      }
+      
+      // Only allow cancellation if order is pending or confirmed
+      if (!['pending', 'confirmed'].includes(order.status)) {
+        res.status(400).json({ success: false, message: 'Order cannot be cancelled at this stage' });
+        return;
+      }
+      
+      const updatedOrder = await orderModel.update(id, { status: 'cancelled' });
+      
+      res.status(200).json({ success: true, data: updatedOrder });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Error cancelling order', error });
     }
   }
 }

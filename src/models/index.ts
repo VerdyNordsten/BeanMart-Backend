@@ -32,6 +32,13 @@ export interface Category {
   name: string;
 }
 
+// Roast Level entity
+export interface RoastLevel {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 // Product entity
 export interface Product {
   id: string;
@@ -49,6 +56,12 @@ export interface Product {
 export interface ProductCategory {
   product_id: string;
   category_id: string;
+}
+
+// Product Roast Level relation
+export interface ProductRoastLevel {
+  product_id: string;
+  roast_level_id: string;
 }
 
 
@@ -83,6 +96,7 @@ export interface Order {
   order_number: string;
   status: string;
   total_amount: number;
+  shipping_cost: number;
   currency: string;
   shipping_address?: Record<string, unknown>;
   billing_address?: Record<string, unknown>;

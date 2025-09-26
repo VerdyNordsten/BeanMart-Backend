@@ -56,6 +56,35 @@ CREATE TABLE IF NOT EXISTS categories (
 
 CREATE INDEX IF NOT EXISTS idx_categories_slug ON categories(slug);
 
+-- RELASI PRODUCT ↔ CATEGORY
+CREATE TABLE IF NOT EXISTS product_categories (
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  PRIMARY KEY (product_id, category_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_product_categories_product_id ON product_categories(product_id);
+CREATE INDEX IF NOT EXISTS idx_product_categories_category_id ON product_categories(category_id);
+
+-- ROAST LEVEL (opsional)
+CREATE TABLE IF NOT EXISTS roast_levels (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_roast_levels_slug ON roast_levels(slug);
+
+-- RELASI PRODUCT ↔ RoastLevel
+CREATE TABLE IF NOT EXISTS product_roast_levels (
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  roast_level_id UUID NOT NULL REFERENCES roast_levels(id) ON DELETE CASCADE,
+  PRIMARY KEY (product_id, roast_level_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_product_roast_levels_product_id ON product_roast_levels(product_id);
+CREATE INDEX IF NOT EXISTS idx_product_roast_levels_roast_id ON product_roast_levels(roast_level_id);
+
 -- PRODUCTS (kopi)
 CREATE TABLE IF NOT EXISTS products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -71,16 +100,6 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
-
--- RELASI PRODUCT ↔ CATEGORY
-CREATE TABLE IF NOT EXISTS product_categories (
-  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
-  PRIMARY KEY (product_id, category_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_product_categories_product_id ON product_categories(product_id);
-CREATE INDEX IF NOT EXISTS idx_product_categories_category_id ON product_categories(category_id);
 
 -- VARIANTS (kombinasi opsi; jika tanpa variasi → varian default)
 CREATE TABLE IF NOT EXISTS product_variants (
@@ -116,6 +135,7 @@ CREATE TABLE IF NOT EXISTS orders (
   order_number TEXT UNIQUE NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending', -- pending, confirmed, shipped, delivered, cancelled
   total_amount NUMERIC(12,2) NOT NULL,
+  shipping_cost NUMERIC(12,2) NOT NULL DEFAULT 0,
   currency CHAR(3) NOT NULL DEFAULT 'USD',
   shipping_address JSONB,
   billing_address JSONB,

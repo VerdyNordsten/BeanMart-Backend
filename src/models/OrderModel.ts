@@ -10,7 +10,7 @@ export const OrderSchema = z.object({
   orderNumber: z.string(),
   status: z.string().default('pending'),
   totalAmount: z.number(),
-  currency: z.string().length(3).default('IDR'),
+  currency: z.string().length(3).default('USD'),
   shippingAddress: z.any().optional(),
   billingAddress: z.any().optional(),
   notes: z.string().optional(),
@@ -54,13 +54,14 @@ export class OrderModel {
   async create(orderData: z.infer<typeof CreateOrderSchema>): Promise<Order> {
     const validatedData = CreateOrderSchema.parse(orderData);
     
-    const query = `INSERT INTO orders (user_id, order_number, status, total_amount, currency, shipping_address, billing_address, notes) 
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
+    const query = `INSERT INTO orders (user_id, order_number, status, total_amount, shipping_cost, currency, shipping_address, billing_address, notes) 
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
     const values = [
       validatedData.userId,
       validatedData.orderNumber,
       validatedData.status,
       validatedData.totalAmount,
+      (validatedData as any).shippingCost || 0,
       validatedData.currency,
       validatedData.shippingAddress,
       validatedData.billingAddress,

@@ -68,6 +68,16 @@ export const CategorySchema = z.object({
 export const CreateCategorySchema = CategorySchema.omit({ id: true });
 export const UpdateCategorySchema = CategorySchema.partial().omit({ id: true });
 
+// Roast Level schema
+export const RoastLevelSchema = z.object({
+  id: z.uuid().optional(),
+  slug: z.string(),
+  name: z.string(),
+});
+
+export const CreateRoastLevelSchema = RoastLevelSchema.omit({ id: true });
+export const UpdateRoastLevelSchema = RoastLevelSchema.partial().omit({ id: true });
+
 // Product schema
 export const ProductSchema = z.object({
   id: z.uuid().optional(),
@@ -88,6 +98,12 @@ export const UpdateProductSchema = ProductSchema.partial().omit({ id: true, crea
 export const ProductCategorySchema = z.object({
   productId: z.uuidv4(),
   categoryId: z.uuidv4(),
+});
+
+// Product Roast Level schema
+export const ProductRoastLevelSchema = z.object({
+  productId: z.uuidv4(),
+  roastLevelId: z.uuidv4(),
 });
 
 
@@ -137,12 +153,13 @@ export const UpdateVariantImageSchema = VariantImageSchema.partial().omit({ id: 
 
 // Order schema
 export const OrderSchema = z.object({
-  id: z.uuidv4().optional(),
-  userId: z.uuidv4(),
+  id: z.string().uuid().optional(),
+  userId: z.string().uuid(),
   orderNumber: z.string(),
   status: z.string().default('pending'),
   totalAmount: z.number(),
-  currency: z.string().length(3).default('IDR'),
+  shippingCost: z.number().default(0),
+  currency: z.string().length(3).default('USD'),
   shippingAddress: z.any().optional(),
   billingAddress: z.any().optional(),
   notes: z.string().optional(),
@@ -153,8 +170,9 @@ export const OrderSchema = z.object({
 export const CreateOrderSchema = OrderSchema.omit({ id: true, createdAt: true, updatedAt: true }).extend({
   orderNumber: z.string().optional(),
   totalAmount: z.number().optional(),
+  shippingCost: z.number().optional(),
   items: z.array(z.object({
-    productVariantId: z.uuidv4(),
+    productVariantId: z.string().uuid(),
     quantity: z.number().int().positive(),
     pricePerUnit: z.number().positive(),
     totalPrice: z.number().positive()
@@ -164,9 +182,9 @@ export const UpdateOrderSchema = OrderSchema.partial().omit({ id: true, createdA
 
 // Order Item schema
 export const OrderItemSchema = z.object({
-  id: z.uuidv4().optional(),
-  orderId: z.uuidv4(),
-  productVariantId: z.uuidv4(),
+  id: z.string().uuid().optional(),
+  orderId: z.string().uuid(),
+  productVariantId: z.string().uuid(),
   quantity: z.number().int().positive(),
   pricePerUnit: z.number().positive(),
   totalPrice: z.number().positive(),

@@ -8,6 +8,8 @@ import categoryRoutes from './v1/categories';
 import productCategoryRoutes from './v1/productCategories';
 import productVariantRoutes from './v1/productVariants';
 import variantImageRoutes from './v1/variantImages';
+import roastLevelRoutes from './v1/roast-levels';
+import productRelationRoutes from './v1/product-relations';
 import authRoutes from './v1/auth';
 import orderRoutes from './v1/orders';
 
@@ -31,6 +33,8 @@ router.use('/categories', categoryRoutes);
 router.use('/product-categories', productCategoryRoutes);
 router.use('/product-variants', productVariantRoutes);
 router.use('/variant-images', variantImageRoutes);
+router.use('/roast-levels', roastLevelRoutes);
+router.use('/product-relations', productRelationRoutes);
 router.use('/orders', orderRoutes);
 
 export default router;

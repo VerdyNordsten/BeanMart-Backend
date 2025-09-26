@@ -32,6 +32,32 @@ export class OrderItemModel {
     return result.rows;
   }
 
+  // Find order items by order ID with product details
+  async findByOrderIdWithDetails(orderId: string): Promise<any[]> {
+    const query = `
+      SELECT 
+        oi.*,
+        pv.id as variant_id,
+        pv.price as variant_price,
+        pv.stock as variant_stock,
+        pv.weight_gram,
+        pv.is_active as variant_active,
+        p.name as product_name,
+        p.slug as product_slug,
+        p.short_description as product_description,
+        p.currency as product_currency,
+        vi.url as product_image
+      FROM order_items oi
+      JOIN product_variants pv ON oi.product_variant_id = pv.id
+      JOIN products p ON pv.product_id = p.id
+      LEFT JOIN variant_images vi ON pv.id = vi.variant_id AND vi.position = 1
+      WHERE oi.order_id = $1
+      ORDER BY oi.created_at DESC
+    `;
+    const result: QueryResult = await pool.query(query, [orderId]);
+    return result.rows;
+  }
+
   // Find order item by ID
   async findById(id: string): Promise<OrderItem | null> {
     const query = 'SELECT * FROM order_items WHERE id = $1';
